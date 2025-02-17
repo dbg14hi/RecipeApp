@@ -1,4 +1,4 @@
-package hbv601g.Recipe.ui.review;
+package hbv601g.Recipe.fragments.review;
 
 import androidx.fragment.app.Fragment;
 
