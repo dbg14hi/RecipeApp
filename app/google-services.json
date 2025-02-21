@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "457725076767",
+    "project_id": "recipeapp-f9800",
+    "storage_bucket": "recipeapp-f9800.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:457725076767:android:2d16a9f37cd9f950d73c2a",
+        "android_client_info": {
+          "package_name": "hbv601g.Recipe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAln3VYXn7LlmhQA3HyqOxqXYPonnc7Yc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
