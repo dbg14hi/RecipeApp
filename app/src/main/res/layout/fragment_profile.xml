@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:gravity="center">
+
+    <!-- User Info (Hidden if logged out) -->
+    <TextView
+        android:id="@+id/usernameText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Username"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="8dp"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/emailText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Email"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:padding="8dp"
+        android:visibility="gone"/>
+
+    <!-- Login & Register Buttons (Hidden if logged in) -->
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LOGIN"
+        android:backgroundTint="@color/purple_700"
+        android:textColor="@android:color/white"
+        android:padding="12dp"/>
+
+    <Button
+        android:id="@+id/registerButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CREATE ACCOUNT"
+        android:backgroundTint="@color/teal_700"
+        android:textColor="@android:color/white"
+        android:padding="12dp"/>
+
+    <EditText
+        android:id="@+id/newUsernameField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter new username"
+        android:padding="12dp"
+        android:background="@android:color/white"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/updateUsernameButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Update Username"
+        android:backgroundTint="@color/purple_700"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Logout Button (Hidden if logged out) -->
+    <Button
+        android:id="@+id/logoutButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LOGOUT"
+        android:backgroundTint="@color/logout_red"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:visibility="gone"/>
+</LinearLayout>

@@ -16,17 +16,6 @@
         android:background="@android:color/white"
         android:layout_marginTop="16dp"/>
 
-    <!-- Email Input -->
-    <EditText
-        android:id="@+id/emailField"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
-        android:padding="12dp"
-        android:background="@android:color/white"
-        android:layout_marginTop="8dp"/>
-
     <!-- Password Input -->
     <EditText
         android:id="@+id/passwordField"
@@ -38,23 +27,23 @@
         android:background="@android:color/white"
         android:layout_marginTop="8dp"/>
 
-    <!-- Register Button -->
+    <!-- Login Button -->
     <Button
-        android:id="@+id/registerButton"
+        android:id="@+id/loginButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="SIGN UP"
+        android:text="LOGIN"
         android:backgroundTint="@color/purple_700"
         android:textColor="@android:color/white"
         android:padding="12dp"
         android:layout_marginTop="16dp"/>
 
-    <!-- Navigate to Login -->
+    <!-- Navigate to Sign Up -->
     <Button
-        android:id="@+id/goToLoginButton"
+        android:id="@+id/goToSignUpButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ALREADY HAVE AN ACCOUNT? LOGIN"
+        android:text="CREATE ACCOUNT"
         android:backgroundTint="@color/teal_700"
         android:textColor="@android:color/white"
         android:padding="12dp"

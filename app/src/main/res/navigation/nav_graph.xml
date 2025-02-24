@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/navigation_home">
+
+    <!-- Home Fragment -->
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="hbv601g.Recipe.ui.home.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home"/>
+
+    <!-- Dashboard Fragment -->
+    <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="hbv601g.Recipe.ui.dashboard.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard"/>
+
+    <!-- Notifications Fragment -->
+    <fragment
+        android:id="@+id/navigation_notifications"
+        android:name="hbv601g.Recipe.ui.notifications.NotificationsFragment"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_notifications"/>
+
+    <!-- Profile Fragment -->
+    <fragment
+        android:id="@+id/navigation_profile"
+        android:name="hbv601g.Recipe.fragments.user.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_navigation_profile_to_loginFragment"
+            app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_navigation_profile_to_signUpFragment"
+            app:destination="@id/signUpFragment" />
+        <action
+            android:id="@+id/action_navigation_profile_self"
+            app:destination="@id/navigation_profile" />
+    </fragment>
+
+    <!-- Login Fragment -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="hbv601g.Recipe.fragments.user.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+
+        <!-- Add action to SignUp -->
+        <action
+            android:id="@+id/action_loginFragment_to_signUpFragment"
+            app:destination="@id/signUpFragment" />
+
+        <!-- Add action to Profile -->
+        <action
+            android:id="@+id/action_loginFragment_to_navigation_profile"
+            app:destination="@id/navigation_profile" />
+    </fragment>
+
+    <!-- SignUp Fragment -->
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="hbv601g.Recipe.fragments.user.SignUpFragment"
+        android:label="Sign Up"
+        tools:layout="@layout/fragment_sign_up">
+
+        <!-- Add action to return to Login -->
+        <action
+            android:id="@+id/action_signUpFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+</navigation>
