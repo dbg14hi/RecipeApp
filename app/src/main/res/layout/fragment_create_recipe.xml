@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:gravity="center"
+    android:background="@android:color/white">
+
+    <!-- Recipe Title -->
+    <EditText
+        android:id="@+id/titleInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Recipe Title"
+        android:padding="12dp"
+        android:background="@android:color/white"
+        android:layout_marginTop="16dp"/>
+
+    <!-- Cooking Time -->
+    <EditText
+        android:id="@+id/cookingTimeInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Cooking Time (minutes)"
+        android:inputType="number"
+        android:padding="12dp"
+        android:background="@android:color/white"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Ingredients -->
+    <EditText
+        android:id="@+id/ingredientsInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Ingredients (comma separated)"
+        android:padding="12dp"
+        android:background="@android:color/white"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Description -->
+    <EditText
+        android:id="@+id/descriptionInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Description"
+        android:padding="12dp"
+        android:background="@android:color/white"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Submit Recipe Button -->
+    <Button
+        android:id="@+id/submitRecipeButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CREATE RECIPE"
+        android:backgroundTint="@color/purple_700"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginTop="16dp"/>
+
+</LinearLayout>

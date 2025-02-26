@@ -3,10 +3,11 @@ package hbv601g.Recipe.repository;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.CollectionReference;
-import java.util.HashMap;
-import java.util.Map;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
+import hbv601g.Recipe.entities.Recipe;
 
 public class FirestoreRepository {
     private final FirebaseFirestore db;
@@ -18,11 +19,7 @@ public class FirestoreRepository {
     }
 
     // 🔹 Add a new Recipe
-    public void addRecipe(String name, String ingredients) {
-        Map<String, Object> recipe = new HashMap<>();
-        recipe.put("name", name);
-        recipe.put("ingredients", ingredients);
-
+    public void addRecipe(Recipe recipe) {
         recipeCollection.add(recipe)
                 .addOnSuccessListener(documentReference ->
                         System.out.println("Recipe added with ID: " + documentReference.getId()))
@@ -32,16 +29,29 @@ public class FirestoreRepository {
 
     // 🔹 Retrieve all Recipes (callback for ViewModel)
     public interface FirestoreCallback {
-        void onRecipesLoaded(List<Map<String, Object>> recipes);
+        void onRecipesLoaded(List<Recipe> recipes);
     }
 
     public void getRecipes(FirestoreCallback callback) {
         recipeCollection.get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        List<Map<String, Object>> recipes = new ArrayList<>();
+                        List<Recipe> recipes = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            recipes.add(document.getData());
+                            try {
+                                Recipe recipe = document.toObject(Recipe.class);
+
+                                // Handle incorrectly stored ingredients
+                                Object ingredientsObj = document.get("ingredients");
+                                if (ingredientsObj instanceof String) {
+                                    List<String> fixedIngredients = Arrays.asList(((String) ingredientsObj).split(", "));
+                                    recipe.setIngredients(fixedIngredients);
+                                }
+
+                                recipes.add(recipe);
+                            } catch (Exception e) {
+                                System.err.println("Error parsing recipe: " + e.getMessage());
+                            }
                         }
                         callback.onRecipesLoaded(recipes);
                     } else {
@@ -49,4 +59,5 @@ public class FirestoreRepository {
                     }
                 });
     }
+
 }

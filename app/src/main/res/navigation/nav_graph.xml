@@ -72,4 +72,12 @@
             android:id="@+id/action_signUpFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
     </fragment>
+
+    <!-- Create Recipe Fragment -->
+    <fragment
+        android:id="@+id/createRecipeFragment"
+        android:name="hbv601g.Recipe.fragments.recipe.CreateRecipeFragment"
+        android:label="Create Recipe"
+        tools:layout="@layout/fragment_create_recipe" />
+
 </navigation>
