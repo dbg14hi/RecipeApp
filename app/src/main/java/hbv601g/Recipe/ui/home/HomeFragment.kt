@@ -14,9 +14,9 @@ class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-    private lateinit var recipeViewModel: RecipeViewModel
+    private lateinit var homeViewModel: HomeViewModel
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: RecipeAdapter // We will create this next!
+    private lateinit var adapter: RecipeAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -27,15 +27,15 @@ class HomeFragment : Fragment() {
         val root: View = binding.root
 
         // 🔹 Initialize ViewModel
-        recipeViewModel = ViewModelProvider(this).get(RecipeViewModel::class.java)
+        homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
 
         // 🔹 Setup RecyclerView
         recyclerView = binding.recyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         // 🔹 Observe Firestore Data
-        recipeViewModel.getRecipesLiveData().observe(viewLifecycleOwner) { recipes ->
-            adapter = RecipeAdapter(recipes)
+        homeViewModel.recipesLiveData.observe(viewLifecycleOwner) { recipes ->
+            adapter = RecipeAdapter(recipes ?: emptyList())
             recyclerView.adapter = adapter
         }
 

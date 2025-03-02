@@ -3,11 +3,23 @@ package hbv601g.Recipe.ui.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import hbv601g.Recipe.entities.Recipe
+import hbv601g.Recipe.repository.FirestoreRepository
 
 class HomeViewModel : ViewModel() {
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is home Fragment"
+    private val repository = FirestoreRepository()
+    private val _recipesLiveData = MutableLiveData<List<Recipe>>()
+
+    val recipesLiveData: LiveData<List<Recipe>> get() = _recipesLiveData
+
+    init {
+        loadRecipes()
     }
-    val text: LiveData<String> = _text
+
+    private fun loadRecipes() {
+        repository.getRecipes { recipes ->
+            _recipesLiveData.postValue(recipes)
+        }
+    }
 }
