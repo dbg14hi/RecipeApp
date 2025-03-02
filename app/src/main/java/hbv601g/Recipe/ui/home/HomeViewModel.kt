@@ -18,8 +18,8 @@ class HomeViewModel : ViewModel() {
     }
 
     private fun loadRecipes() {
-        repository.getRecipes { recipes ->
-            _recipesLiveData.postValue(recipes)
+       repository.getRecipes { recipes ->
+           _recipesLiveData.postValue(recipes)
         }
     }
 }
