@@ -4,6 +4,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.CollectionReference;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
@@ -28,6 +30,14 @@ public class FirestoreRepository {
                         System.out.println("Recipe added with ID: " + documentReference.getId()))
                 .addOnFailureListener(e ->
                         System.err.println("Error adding recipe: " + e.getMessage()));
+    }
+
+    public void getReviewsByRecipe(@Nullable FirestoreRepository.FirestoreCallback firestoreCallback) {
+
+    }
+
+    public void getRecipes(@Nullable FirestoreRepository.FirestoreCallback firestoreCallback) {
+
     }
 
     // 🔹 Retrieve all Recipes (callback for ViewModel)
@@ -62,7 +72,6 @@ public class FirestoreRepository {
                         callback.onRecipesLoaded(recipes);
                     } else {
                         System.err.println("Error getting recipes: " + task.getException());
-                        callback.onFailure(task.getException());
                     }
                 });
     }
