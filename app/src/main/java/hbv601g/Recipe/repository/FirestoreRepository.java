@@ -34,7 +34,9 @@ public class FirestoreRepository {
     public interface FirestoreCallback {
         void onRecipesLoaded(List<Recipe> recipes);
         void onReviewsLoaded(List<Review> reviews);
+        void onFailure(Exception e); // Notify the caller of failures
     }
+
 
     public void getRecipes(FirestoreCallback callback) {
         recipeCollection.get()
@@ -60,6 +62,7 @@ public class FirestoreRepository {
                         callback.onRecipesLoaded(recipes);
                     } else {
                         System.err.println("Error getting recipes: " + task.getException());
+                        callback.onFailure(task.getException());
                     }
                 });
     }
@@ -78,6 +81,7 @@ public class FirestoreRepository {
                         callback.onReviewsLoaded(reviews); // You may want to create a new callback for reviews
                     } else {
                         System.err.println("Error getting reviews: " + task.getException());
+                        callback.onFailure(task.getException());
                     }
                 });
     }
@@ -93,9 +97,10 @@ public class FirestoreRepository {
                             Review review = document.toObject(Review.class);
                             reviews.add(review);
                         }
-                        callback.onRecipesLoaded(reviews); // You may want to create a new callback for reviews
+                        callback.onReviewsLoaded(reviews); // You may want to create a new callback for reviews
                     } else {
                         System.err.println("Error getting reviews: " + task.getException());
+                        callback.onFailure(task.getException());
                     }
                 });
     }
@@ -107,6 +112,7 @@ public class FirestoreRepository {
                         System.out.println("Review added with ID: " + documentReference.getId()))
                 .addOnFailureListener(e ->
                         System.err.println("Error adding review: " + e.getMessage()));
+
     }
 
     /** Update existing review */

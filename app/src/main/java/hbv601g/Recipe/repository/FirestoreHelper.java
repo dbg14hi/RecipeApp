@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import hbv601g.Recipe.entities.Recipe;
+import hbv601g.Recipe.entities.Review;
+
 public class FirestoreHelper {
     private final FirebaseFirestore db;
     private final CollectionReference recipeCollection;
@@ -63,6 +66,14 @@ public class FirestoreHelper {
                 .addOnFailureListener(e -> System.err.println("Error deleting recipe"));
     }
 
+    //Arna review kóði:
+
+    public interface FirestoreReviewCallback {
+        void onSuccess(List<Review> reviews);
+        void onFailure(Exception e);
+    }
+
+
     // 🔹 Add a new Review
     public void addReview(String comment, int rating, String userId, String recipeId) {
         Map<String, Object> review = new HashMap<>();
@@ -90,21 +101,24 @@ public class FirestoreHelper {
                             review.setId(document.getId()); // Set the document ID
                             reviews.add(review);
                         }
-                        callback.onReviewsLoaded(reviews); // Call the callback with the loaded reviews
+                        callback.onSuccess(reviews);
                     } else {
                         System.err.println("Error getting reviews: " + task.getException());
-                        callback.onReviewsLoaded(new ArrayList<>()); // Pass empty list on error
+                        callback.onFailure(task.getException());
                     }
                 });
     }
 
+
     // 🔹 Update a Review
     public void updateReview(String reviewId, String newComment) {
         reviewCollection.document(reviewId)
-                .update("comment", newComment)
+                .update("name", newName)
                 .addOnSuccessListener(aVoid -> System.out.println("Review updated"))
-                .addOnFailureListener(e -> System.err.println("Error updating review"));
+                .addOnFailureListener(e -> System.err.println("Error updating review: " + e.getMessage()));
     }
+
+
 
     // 🔹 Delete a Review
     public void deleteReview(String reviewId) {
