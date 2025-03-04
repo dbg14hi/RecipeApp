@@ -5,6 +5,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.CollectionReference;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import hbv601g.Recipe.entities.Recipe;
@@ -18,7 +19,7 @@ public class FirestoreRepository {
         recipeCollection = db.collection("recipes");
     }
 
-    // 🔹 Add a new Recipe
+    // Add a new Recipe
     public void addRecipe(Recipe recipe) {
         recipeCollection.add(recipe)
                 .addOnSuccessListener(documentReference ->
@@ -27,7 +28,7 @@ public class FirestoreRepository {
                         System.err.println("Error adding recipe: " + e.getMessage()));
     }
 
-    // 🔹 Retrieve all Recipes (callback for ViewModel)
+    // Retrieve all Recipes (callback for ViewModel)
     public interface FirestoreCallback {
         void onRecipesLoaded(List<Recipe> recipes);
     }
@@ -39,14 +40,16 @@ public class FirestoreRepository {
                         List<Recipe> recipes = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             try {
-                                Recipe recipe = document.toObject(Recipe.class);
+                                Recipe recipe = new Recipe();
 
-                                // Handle incorrectly stored ingredients
-                                Object ingredientsObj = document.get("ingredients");
-                                if (ingredientsObj instanceof String) {
-                                    List<String> fixedIngredients = Arrays.asList(((String) ingredientsObj).split(", "));
-                                    recipe.setIngredients(fixedIngredients);
-                                }
+                                recipe.setTitle(document.getString("title"));
+                                recipe.setDescription(document.getString("description"));
+                                recipe.setCookingTime(document.getLong("cookingTime").intValue());
+
+                                // Convert ingredients string into list
+                                String ingredientsString = document.getString("ingredients");
+                                List<String> ingredientsList = Arrays.asList(ingredientsString.split(",\\s*"));
+                                recipe.setIngredients(ingredientsList);
 
                                 recipes.add(recipe);
                             } catch (Exception e) {
@@ -58,6 +61,7 @@ public class FirestoreRepository {
                         System.err.println("Error getting recipes: " + task.getException());
                     }
                 });
+
     }
 
 }

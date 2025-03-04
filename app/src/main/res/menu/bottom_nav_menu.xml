@@ -21,8 +21,4 @@
         android:icon="@drawable/ic_account_circle_black_24dp"
         android:title="@string/title_profile" />
 
-    <item
-        android:id="@+id/navigation_create_recipe"
-        android:icon="@drawable/ic_add_recipe"
-        android:title="Create Recipe" />
 </menu>
