@@ -38,7 +38,7 @@ public class ReviewEditFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_edit_review, container, false);
+        View view = inflater.inflate(R.layout.fragment_review, container, false);
 
         // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(ReviewViewModel.class);
@@ -58,7 +58,8 @@ public class ReviewEditFragment extends Fragment {
 
     private void loadReviewData() {
         // Load review data using ViewModel or repository and populate fields
-        viewModel.getReviewById(reviewId).observe(getViewLifecycleOwner(), review -> {
+        viewModel.getReviewById(reviewId); // Call to load the review data
+        viewModel.getSingleReviewLiveData().observe(getViewLifecycleOwner(), review -> {
             if (review != null) {
                 ratingBar.setRating(review.getRating().floatValue());
                 commentEditText.setText(review.getComment());

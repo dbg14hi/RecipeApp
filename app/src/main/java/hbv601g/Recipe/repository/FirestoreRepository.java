@@ -36,9 +36,6 @@ public class FirestoreRepository {
 
     }
 
-    public void getRecipes(@Nullable FirestoreRepository.FirestoreCallback firestoreCallback) {
-
-    }
 
     // 🔹 Retrieve all Recipes (callback for ViewModel)
     public interface FirestoreCallback {
@@ -46,7 +43,6 @@ public class FirestoreRepository {
         void onReviewsLoaded(List<Review> reviews);
         void onFailure(Exception e); // Notify the caller of failures
     }
-
 
     public void getRecipes(FirestoreCallback callback) {
         recipeCollection.get()
@@ -75,6 +71,7 @@ public class FirestoreRepository {
                     }
                 });
     }
+
 
     /** Fetch reviews by recipe */
     public void getReviewsByRecipe(String recipeId, FirestoreCallback callback) {
@@ -141,5 +138,25 @@ public class FirestoreRepository {
                         System.out.println("Review deleted"))
                 .addOnFailureListener(e ->
                         System.err.println("Error deleting review: " + e.getMessage()));
+    }
+
+    public void getReviewById(String reviewId, ReviewCallback callback) {
+        reviewCollection.document(reviewId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Review review = documentSnapshot.toObject(Review.class);
+                        callback.onReviewLoaded(review);
+                    } else {
+                        callback.onReviewLoaded(null);
+                    }
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
+
+    // Define a callback for single review retrieval
+    public interface ReviewCallback {
+        void onReviewLoaded(Review review);
+        void onFailure(Exception e);
     }
 }

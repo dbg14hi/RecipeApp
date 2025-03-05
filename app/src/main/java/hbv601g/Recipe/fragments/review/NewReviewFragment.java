@@ -28,7 +28,7 @@ public class NewReviewFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_new_review, container, false);
+        View view = inflater.inflate(R.layout.fragment_review, container, false);
 
         // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(ReviewViewModel.class);
