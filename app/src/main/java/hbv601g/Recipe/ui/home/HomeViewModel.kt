@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import hbv601g.Recipe.entities.Recipe
+import hbv601g.Recipe.entities.Review
 import hbv601g.Recipe.repository.FirestoreRepository
 
 //class HomeViewModel : ViewModel() {
@@ -51,10 +52,24 @@ class HomeViewModel : ViewModel() {
     private fun loadRecipes() {
 
         // Temporary hardcoded recipes
-        val sampleRecipes = listOf(
-            Recipe("Spaghetti Bolognese", listOf("Spaghetti", "Beef", "Tomato Sauce"), "A classic Italian dish", 45),
-            Recipe("Chicken Curry", listOf("Chicken", "Curry Paste", "Coconut Milk"), "Spicy and creamy curry", 60)
-        )
-        _recipesLiveData.value = sampleRecipes
+        //val sampleRecipes = listOf(
+        //    Recipe("Spaghetti Bolognese", listOf("Spaghetti", "Beef", "Tomato Sauce"), "A classic Italian dish", 45),
+        //    Recipe("Chicken Curry", listOf("Chicken", "Curry Paste", "Coconut Milk"), "Spicy and creamy curry", 60)
+        //)
+        //_recipesLiveData.value = sampleRecipes
+        repository.getRecipes(object : FirestoreRepository.FirestoreCallback {
+            override fun onRecipesLoaded(recipes: List<Recipe>) {
+                _recipesLiveData.postValue(recipes)
+            }
+
+            override fun onReviewsLoaded(reviews: List<Review>) {
+                // Not needed for now, but required by the interface
+            }
+
+            override fun onFailure(e: Exception) {
+
+                e.printStackTrace()
+            }
+        })
     }
 }
