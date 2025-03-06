@@ -3,25 +3,44 @@ package hbv601g.Recipe.ui.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import hbv601g.Recipe.entities.Recipe
 import hbv601g.Recipe.entities.Review
 import hbv601g.Recipe.repository.FirestoreRepository
 
 class ReviewViewModel : ViewModel() {
+
     private val repository = FirestoreRepository()
-    private val reviewLiveData = MutableLiveData<List<Review>>()
-    private val singleReviewLiveData = MutableLiveData<Review>()
 
-    init {
-        loadReviews("defaultRecipeId") //hvernig sæki ég uppskriftir?
+    private val _reviewListLiveData = MutableLiveData<List<Review>>()
+    val reviewListLiveData: LiveData<List<Review>> = _reviewListLiveData
+
+    private val _singleReviewLiveData = MutableLiveData<Review?>()
+    val singleReviewLiveData: LiveData<Review?> = _singleReviewLiveData
+
+    private val _errorLiveData = MutableLiveData<String>()
+    val errorLiveData: LiveData<String> = _errorLiveData
+
+    fun loadReviewsByRecipe(recipeId: String) {
+        repository.getReviewsByRecipe(recipeId, object : FirestoreRepository.ReviewCallback {
+            override fun onReviewsLoaded(reviews: List<Review>) {
+                _reviewListLiveData.postValue(reviews)
+            }
+
+            override fun onFailure(e: Exception) {
+                _errorLiveData.postValue("Failed to load reviews: ${e.message}")
+            }
+        })
     }
 
-    fun getReviewLiveData(): LiveData<List<Review>> {
-        return reviewLiveData
-    }
+    fun loadReviewById(reviewId: String) {
+        repository.getReviewById(reviewId, object : FirestoreRepository.ReviewByIdCallback {
+            override fun onReviewLoaded(review: Review?) {
+                _singleReviewLiveData.postValue(review)
+            }
 
-    fun getSingleReviewLiveData(): LiveData<Review> {
-        return singleReviewLiveData
+            override fun onFailure(e: Exception) {
+                _errorLiveData.postValue("Failed to load review: ${e.message}")
+            }
+        })
     }
 
     fun addReview(review: Review) {
@@ -35,31 +54,5 @@ class ReviewViewModel : ViewModel() {
     fun deleteReview(reviewId: String) {
         repository.deleteReview(reviewId)
     }
-
-    private fun loadReviews(recipeId: String) {
-        repository.getReviewsByRecipe(recipeId, object : FirestoreRepository.FirestoreCallback {
-            override fun onReviewsLoaded(reviews: List<Review>) {
-                reviewLiveData.postValue(reviews)
-            }
-
-            override fun onRecipesLoaded(recipes: List<Recipe>) {
-            }
-
-            override fun onFailure(e: Exception) {
-                e.printStackTrace()
-            }
-        })
-    }
-
-    fun getReviewById(reviewId: String) {
-        repository.getReviewById(reviewId, object : FirestoreRepository.ReviewCallback {
-            override fun onReviewLoaded(review: Review?) {
-                singleReviewLiveData.postValue(review)
-            }
-
-            override fun onFailure(e: Exception) {
-                e.printStackTrace()
-            }
-        })
-    }
 }
+
