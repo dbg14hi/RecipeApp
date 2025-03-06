@@ -27,7 +27,6 @@ public class Recipe {
 
     }
 
-//
 
     public Recipe(String title, List<String> ingredients, String description, int cookingTime) {
         this.title = title;

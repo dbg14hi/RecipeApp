@@ -7,9 +7,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
@@ -31,6 +36,10 @@ public class CreateRecipeFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        if (getActivity() != null) {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         titleInput = view.findViewById(R.id.titleInput);
         descriptionInput = view.findViewById(R.id.descriptionInput);
         ingredientsInput = view.findViewById(R.id.ingredientsInput);
@@ -38,6 +47,16 @@ public class CreateRecipeFragment extends Fragment {
         submitRecipeButton = view.findViewById(R.id.submitRecipeButton);
 
         submitRecipeButton.setOnClickListener(v -> createRecipe());
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(
+                getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        NavHostFragment.findNavController(CreateRecipeFragment.this).navigateUp();
+                    }
+                }
+        );
 
         return view;
     }
@@ -70,5 +89,14 @@ public class CreateRecipeFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to add recipe", Toast.LENGTH_SHORT).show());
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (getActivity() != null) {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        }
+    }
+
 }
 

@@ -5,7 +5,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.CollectionReference;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import hbv601g.Recipe.entities.Recipe;
@@ -31,7 +30,10 @@ public class FirestoreRepository {
     // Retrieve all Recipes (callback for ViewModel)
     public interface FirestoreCallback {
         void onRecipesLoaded(List<Recipe> recipes);
+        void onError(Exception e);
     }
+
+
 
     public void getRecipes(FirestoreCallback callback) {
         recipeCollection.get()
@@ -40,16 +42,14 @@ public class FirestoreRepository {
                         List<Recipe> recipes = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             try {
-                                Recipe recipe = new Recipe();
+                                Recipe recipe = document.toObject(Recipe.class);
 
-                                recipe.setTitle(document.getString("title"));
-                                recipe.setDescription(document.getString("description"));
-                                recipe.setCookingTime(document.getLong("cookingTime").intValue());
-
-                                // Convert ingredients string into list
-                                String ingredientsString = document.getString("ingredients");
-                                List<String> ingredientsList = Arrays.asList(ingredientsString.split(",\\s*"));
-                                recipe.setIngredients(ingredientsList);
+                                // Handle incorrectly stored ingredients
+                                Object ingredientsObj = document.get("ingredients");
+                                if (ingredientsObj instanceof String) {
+                                    List<String> fixedIngredients = Arrays.asList(((String) ingredientsObj).split(", "));
+                                    recipe.setIngredients(fixedIngredients);
+                                }
 
                                 recipes.add(recipe);
                             } catch (Exception e) {
@@ -59,9 +59,9 @@ public class FirestoreRepository {
                         callback.onRecipesLoaded(recipes);
                     } else {
                         System.err.println("Error getting recipes: " + task.getException());
+                        callback.onError(task.getException());
                     }
                 });
-
     }
 
 }
