@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import hbv601g.Recipe.R
 import hbv601g.Recipe.entities.Recipe
 
-class RecipeAdapter(private val recipes: List<Recipe>) :
+class RecipeAdapter(private var recipes: List<Recipe>) :
     RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder>() {
 
     class RecipeViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -29,5 +29,10 @@ class RecipeAdapter(private val recipes: List<Recipe>) :
     }
 
     override fun getItemCount(): Int = recipes.size
+
+    fun updateData(newRecipes: List<Recipe>) {
+        recipes = newRecipes
+        notifyDataSetChanged()
+    }
 }
 

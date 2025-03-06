@@ -13,7 +13,7 @@ public class Recipe {
     private String description;
     private List<String> ingredients;
     private int cookingTime;
-    private User user;
+//    private User user;
 //    private HashSet<MealCategory> mealCategory;
 //    private HashSet<DietaryRestriction> dieteryRestrictions;
 //    private final String recipePictureUrl;
@@ -34,7 +34,7 @@ public class Recipe {
         this.ingredients = ingredients;
         this.description = description;
         this.cookingTime = cookingTime;
-        this.user = user;
+//        this.user = user;
 //        this.usersWhoFavorited = new List<>();
 //        this.reviews = new List<Review>();
 //        this.ratings = new HashSet<>();
@@ -83,7 +83,7 @@ public class Recipe {
         return cookingTime;
     }
 
-    public void setCookTime(int cookTime) {
+    public void setCookingTime(int cookTime) {
         this.cookingTime = cookingTime;
     }
 
@@ -131,15 +131,13 @@ public class Recipe {
 //            this.rating = 1;
 //        }
 //    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
+//    public User getUser() {
+//        return user;
+//    }
+//
+//    public void setUser(User user) {
+//        this.user = user;
+//    }
 //    public HashSet<User> getUsersWhoFavorited() {
 //        return usersWhoFavorited;
 //    }
