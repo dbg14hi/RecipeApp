@@ -73,7 +73,6 @@ public class FirestoreRepository {
     }
 
 
-    /** Fetch reviews by recipe */
     public void getReviewsByRecipe(String recipeId, FirestoreCallback callback) {
         reviewCollection.whereEqualTo("recipeId", recipeId)
                 .get()
@@ -84,7 +83,7 @@ public class FirestoreRepository {
                             Review review = document.toObject(Review.class);
                             reviews.add(review);
                         }
-                        callback.onReviewsLoaded(reviews); // You may want to create a new callback for reviews
+                        callback.onReviewsLoaded(reviews);
                     } else {
                         System.err.println("Error getting reviews: " + task.getException());
                         callback.onFailure(task.getException());
@@ -92,7 +91,6 @@ public class FirestoreRepository {
                 });
     }
 
-    /** Fetch reviews by rating */
     public void getReviewsByRating(int rating, FirestoreCallback callback) {
         reviewCollection.whereEqualTo("rating", rating)
                 .get()
@@ -103,7 +101,7 @@ public class FirestoreRepository {
                             Review review = document.toObject(Review.class);
                             reviews.add(review);
                         }
-                        callback.onReviewsLoaded(reviews); // You may want to create a new callback for reviews
+                        callback.onReviewsLoaded(reviews);
                     } else {
                         System.err.println("Error getting reviews: " + task.getException());
                         callback.onFailure(task.getException());
@@ -111,7 +109,6 @@ public class FirestoreRepository {
                 });
     }
 
-    /** Add new review */
     public void addReview(Review review) {
         reviewCollection.add(review)
                 .addOnSuccessListener(documentReference ->
@@ -121,7 +118,6 @@ public class FirestoreRepository {
 
     }
 
-    /** Update existing review */
     public void updateReview(String reviewId, String newComment) {
         reviewCollection.document(reviewId)
                 .update("comment", newComment)
@@ -131,7 +127,6 @@ public class FirestoreRepository {
                         System.err.println("Error updating review: " + e.getMessage()));
     }
 
-    /** Delete a review */
     public void deleteReview(String reviewId) {
         reviewCollection.document(reviewId).delete()
                 .addOnSuccessListener(aVoid ->
@@ -154,7 +149,7 @@ public class FirestoreRepository {
                 .addOnFailureListener(callback::onFailure);
     }
 
-    // Define a callback for single review retrieval
+
     public interface ReviewCallback {
         void onReviewLoaded(Review review);
         void onFailure(Exception e);

@@ -47,13 +47,12 @@ public class NewReviewFragment extends Fragment {
         int rating = (int) ratingBar.getRating();
 
         if (!comment.isEmpty() && rating > 0) {
-            // Create a new review object
             Review newReview = new Review(comment, rating, "user_id", "recipe_id", null);
             viewModel.addReview(newReview); // Use the ViewModel to add the review
-            Toast.makeText(getContext(), "Review submitted successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Umsögn móttekin", Toast.LENGTH_SHORT).show();
             requireActivity().onBackPressed();
         } else {
-            Toast.makeText(getContext(), "Please provide a valid comment and rating", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Vinsamlegast skrifaðu umsögn og gefðu einkunn", Toast.LENGTH_SHORT).show();
         }
     }
 }

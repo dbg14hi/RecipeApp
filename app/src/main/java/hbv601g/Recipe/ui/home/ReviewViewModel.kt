@@ -10,10 +10,10 @@ import hbv601g.Recipe.repository.FirestoreRepository
 class ReviewViewModel : ViewModel() {
     private val repository = FirestoreRepository()
     private val reviewLiveData = MutableLiveData<List<Review>>()
-    private val singleReviewLiveData = MutableLiveData<Review>() // For single review data
+    private val singleReviewLiveData = MutableLiveData<Review>()
 
     init {
-        loadReviews("defaultRecipeId") // 🔹 Replace with an actual recipe ID or pass dynamically
+        loadReviews("defaultRecipeId") //hvernig sæki ég uppskriftir?
     }
 
     fun getReviewLiveData(): LiveData<List<Review>> {
@@ -43,7 +43,6 @@ class ReviewViewModel : ViewModel() {
             }
 
             override fun onRecipesLoaded(recipes: List<Recipe>) {
-                // Not needed here
             }
 
             override fun onFailure(e: Exception) {
