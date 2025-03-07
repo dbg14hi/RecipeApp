@@ -1,19 +1,18 @@
 package hbv601g.Recipe.repository;
 
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.CollectionReference;
 
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.entities.Review;
 
 public class FirestoreRepository {
+
     private final FirebaseFirestore db;
     private final CollectionReference recipeCollection;
     private final CollectionReference reviewCollection;
@@ -21,10 +20,13 @@ public class FirestoreRepository {
     public FirestoreRepository() {
         db = FirebaseFirestore.getInstance();
         recipeCollection = db.collection("recipes");
-        reviewCollection = db.collection("reviews"); // Corrected this line
+        reviewCollection = db.collection("reviews");
     }
 
-    // Add a new Recipe
+    // ================
+    // RECIPE OPERATIONS
+    // ================
+
     public void addRecipe(Recipe recipe) {
         recipeCollection.add(recipe)
                 .addOnSuccessListener(documentReference ->
@@ -33,48 +35,57 @@ public class FirestoreRepository {
                         System.err.println("Error adding recipe: " + e.getMessage()));
     }
 
-    public void getReviewsByRecipe(@Nullable FirestoreRepository.FirestoreCallback firestoreCallback) {
+    public void getRecipes(RecipeCallback callback) {
+        recipeCollection.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                List<Recipe> recipes = new ArrayList<>();
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    System.out.println("📄 Document data: " + document.getData());
 
-    }
+                    String recipeId = document.getId();
+                    String title = document.getString("title");  // Fetch title (instead of name)
+                    String description = document.getString("description");  // Fetch description
+                    Integer cookingTime = document.getLong("cookingTime") != null ? document.getLong("cookingTime").intValue() : 0;  // Fetch cookingTime as int
+                    Object ingredientsObj = document.get("ingredients");
 
-
-    // 🔹 Retrieve all Recipes (callback for ViewModel)
-    public interface FirestoreCallback {
-        void onRecipesLoaded(List<Recipe> recipes);
-    }
-
-    public void getRecipes(FirestoreCallback callback) {
-        recipeCollection.get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        List<Recipe> recipes = new ArrayList<>();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            try {
-                                Recipe recipe = new Recipe();
-
-                                recipe.setTitle(document.getString("title"));
-                                recipe.setDescription(document.getString("description"));
-                                recipe.setCookingTime(document.getLong("cookingTime").intValue());
-
-                                // Convert ingredients string into list
-                                String ingredientsString = document.getString("ingredients");
-                                List<String> ingredientsList = Arrays.asList(ingredientsString.split(",\\s*"));
-                                recipe.setIngredients(ingredientsList);
-
-                                recipes.add(recipe);
-                            } catch (Exception e) {
-                                System.err.println("Error parsing recipe: " + e.getMessage());
-                            }
-                        }
-                        callback.onRecipesLoaded(recipes);
-                    } else {
-                        System.err.println("Error getting recipes: " + task.getException());
+                    List<String> ingredients = new ArrayList<>();
+                    if (ingredientsObj instanceof String) {
+                        ingredients = Arrays.asList(((String) ingredientsObj).split(",\\s*"));
+                    } else if (ingredientsObj instanceof List) {
+                        ingredients = (List<String>) ingredientsObj;
                     }
-                });
+
+                    Recipe recipe = new Recipe();
+                    recipe.setRecipeId(recipeId);
+                    recipe.setTitle(title);
+                    recipe.setDescription(description);
+                    recipe.setCookingTime(cookingTime);
+                    recipe.setIngredients(ingredients);
+
+                    recipes.add(recipe);
+                }
+                System.out.println("Loaded " + recipes.size() + " recipes");
+                callback.onRecipesLoaded(recipes);
+            } else {
+                System.err.println("Failed to load recipes: " + task.getException());
+                callback.onFailure(task.getException());
+            }
+        });
     }
 
+    // ================
+    // REVIEW OPERATIONS
+    // ================
 
-    public void getReviewsByRecipe(String recipeId, FirestoreCallback callback) {
+    public void addReview(Review review) {
+        reviewCollection.add(review)
+                .addOnSuccessListener(documentReference ->
+                        System.out.println("Review added with ID: " + documentReference.getId()))
+                .addOnFailureListener(e ->
+                        System.err.println("Error adding review: " + e.getMessage()));
+    }
+
+    public void getReviewsByRecipe(String recipeId, ReviewCallback callback) {
         reviewCollection.whereEqualTo("recipeId", recipeId)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -86,37 +97,23 @@ public class FirestoreRepository {
                         }
                         callback.onReviewsLoaded(reviews);
                     } else {
-                        System.err.println("Error getting reviews: " + task.getException());
                         callback.onFailure(task.getException());
                     }
                 });
     }
 
-    public void getReviewsByRating(int rating, FirestoreCallback callback) {
-        reviewCollection.whereEqualTo("rating", rating)
+    public void getReviewById(String reviewId, ReviewByIdCallback callback) {
+        reviewCollection.document(reviewId)
                 .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        List<Review> reviews = new ArrayList<>();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Review review = document.toObject(Review.class);
-                            reviews.add(review);
-                        }
-                        callback.onReviewsLoaded(reviews);
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Review review = documentSnapshot.toObject(Review.class);
+                        callback.onReviewLoaded(review);
                     } else {
-                        System.err.println("Error getting reviews: " + task.getException());
-                        callback.onFailure(task.getException());
+                        callback.onReviewLoaded(null);  // Review not found
                     }
-                });
-    }
-
-    public void addReview(Review review) {
-        reviewCollection.add(review)
-                .addOnSuccessListener(documentReference ->
-                        System.out.println("Review added with ID: " + documentReference.getId()))
-                .addOnFailureListener(e ->
-                        System.err.println("Error adding review: " + e.getMessage()));
-
+                })
+                .addOnFailureListener(callback::onFailure);
     }
 
     public void updateReview(String reviewId, String newComment) {
@@ -136,22 +133,21 @@ public class FirestoreRepository {
                         System.err.println("Error deleting review: " + e.getMessage()));
     }
 
-    public void getReviewById(String reviewId, ReviewCallback callback) {
-        reviewCollection.document(reviewId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Review review = documentSnapshot.toObject(Review.class);
-                        callback.onReviewLoaded(review);
-                    } else {
-                        callback.onReviewLoaded(null);
-                    }
-                })
-                .addOnFailureListener(callback::onFailure);
+    // ================
+    // CALLBACK INTERFACES
+    // ================
+
+    public interface RecipeCallback {
+        void onRecipesLoaded(List<Recipe> recipes);
+        void onFailure(Exception e);
     }
 
-
     public interface ReviewCallback {
+        void onReviewsLoaded(List<Review> reviews);
+        void onFailure(Exception e);
+    }
+
+    public interface ReviewByIdCallback {
         void onReviewLoaded(Review review);
         void onFailure(Exception e);
     }
