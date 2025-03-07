@@ -14,8 +14,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import hbv601g.Recipe.R
 import hbv601g.Recipe.databinding.FragmentHomeBinding
+import hbv601g.Recipe.entities.Recipe
 
-class HomeFragment : Fragment() {
+
+class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
@@ -41,18 +43,19 @@ class HomeFragment : Fragment() {
 
         if (FirebaseAuth.getInstance().currentUser != null) {
             createRecipeFab.visibility = View.VISIBLE
-            binding.createRecipeFab.setOnClickListener {
+            createRecipeFab.setOnClickListener {
                 findNavController().navigate(R.id.action_navigation_home_to_createRecipeFragment)
             }
         } else {
             createRecipeFab.visibility = View.GONE
         }
 
-        adapter = RecipeAdapter(emptyList())
+        // Pass 'this' to the adapter as the click listener
+        adapter = RecipeAdapter(emptyList(), this)
         recyclerView.adapter = adapter
 
         homeViewModel.recipesLiveData.observe(viewLifecycleOwner) { recipes ->
-            Log.d("HomeFragment", "Received ${recipes.size} recipes in Fragment")
+            Log.d("HomeFragment", "Received ${recipes?.size ?: 0} recipes in Fragment")
             adapter.updateData(recipes ?: emptyList())
         }
 
@@ -63,4 +66,16 @@ class HomeFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    override fun onRecipeClick(recipe: Recipe) {
+        val bundle = Bundle().apply {
+            putString("recipeTitle", recipe.title)
+            putString("recipeDescription", recipe.description)
+            putStringArrayList("recipeIngredients", ArrayList(recipe.ingredients))
+            putInt("recipeCookingTime", recipe.cookingTime)
+        }
+
+        findNavController().navigate(R.id.action_navigation_home_to_recipeDetailFragment, bundle)
+    }
+
 }

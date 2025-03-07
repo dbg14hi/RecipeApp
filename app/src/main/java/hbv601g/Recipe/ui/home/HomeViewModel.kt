@@ -4,35 +4,31 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import hbv601g.Recipe.entities.Recipe
-import hbv601g.Recipe.entities.Review
 import hbv601g.Recipe.repository.FirestoreRepository
 
 class HomeViewModel : ViewModel() {
 
     private val repository = FirestoreRepository()
-    private val _recipesLiveData = MutableLiveData<List<Recipe>>()
 
-    val recipesLiveData: LiveData<List<Recipe>> get() = _recipesLiveData
+    private val _recipesLiveData = MutableLiveData<List<Recipe>>()
+    val recipesLiveData: LiveData<List<Recipe>> = _recipesLiveData
+
+    private val _errorLiveData = MutableLiveData<String>()
+    val errorLiveData: LiveData<String> = _errorLiveData
 
     init {
         loadRecipes()
     }
 
-    private fun loadRecipes() {
-        repository.getRecipes(object : FirestoreRepository.FirestoreCallback {
+    fun loadRecipes() {
+        repository.getRecipes(object : FirestoreRepository.RecipeCallback {
             override fun onRecipesLoaded(recipes: List<Recipe>) {
                 _recipesLiveData.postValue(recipes)
             }
 
-            override fun onReviewsLoaded(reviews: List<Review>) {
-                // Not needed for now, but required by the interface
-            }
-
             override fun onFailure(e: Exception) {
-
-                e.printStackTrace()
+                _errorLiveData.postValue("Failed to load recipes: ${e.message}")
             }
         })
     }
-
 }

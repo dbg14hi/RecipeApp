@@ -1,6 +1,72 @@
 package hbv601g.Recipe.fragments.recipe;
 
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AppCompatActivity;
+import java.util.ArrayList;
+import hbv601g.Recipe.R;
+import android.view.MenuItem;
+import androidx.annotation.NonNull;
+import androidx.navigation.fragment.NavHostFragment;
 
 public class RecipeDetailFragment extends Fragment {
+
+    private TextView titleTextView, descriptionTextView, ingredientsTextView, cookingTimeTextView;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
+
+        if (getActivity() != null) {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
+        titleTextView = view.findViewById(R.id.recipe_title);
+        descriptionTextView = view.findViewById(R.id.recipe_description);
+        ingredientsTextView = view.findViewById(R.id.recipe_ingredients);
+        cookingTimeTextView = view.findViewById(R.id.recipe_cooking_time);
+
+        Bundle args = getArguments();
+        if (args != null) {
+            String title = args.getString("recipeTitle");
+            String description = args.getString("recipeDescription");
+            ArrayList<String> ingredients = args.getStringArrayList("recipeIngredients");
+            int cookingTime = args.getInt("recipeCookingTime");
+
+            titleTextView.setText(title);
+            descriptionTextView.setText(description);
+            ingredientsTextView.setText(TextUtils.join(", ", ingredients));
+            cookingTimeTextView.setText("Cooking Time: " + cookingTime + " minutes");
+        }
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(
+                getViewLifecycleOwner(),
+                new OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        NavHostFragment.findNavController(RecipeDetailFragment.this).navigateUp();
+                    }
+                }
+        );
+
+        return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (getActivity() != null) {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        }
+    }
 }
+
+
+
