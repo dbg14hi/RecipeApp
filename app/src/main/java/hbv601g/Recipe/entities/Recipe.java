@@ -1,19 +1,14 @@
 package hbv601g.Recipe.entities;
 
-import android.media.Rating;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 public class Recipe {
-    private String recipeId;  // Not stored in Firestore - set manually
+    private String recipeId;
     private String title;
     private String description;
     private List<String> ingredients;
     private int cookingTime;
-    private String userId;  // Fixed from userID
+    private String userId;
 
     public Recipe() {}
 

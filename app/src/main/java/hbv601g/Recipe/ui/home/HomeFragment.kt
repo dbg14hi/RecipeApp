@@ -75,7 +75,15 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             putInt("recipeCookingTime", recipe.cookingTime)
         }
 
-        findNavController().navigate(R.id.action_navigation_home_to_recipeDetailFragment, bundle)
+        val navController = findNavController()
+
+        // Prevent navigation if already in RecipeDetailFragment
+        if (navController.currentDestination?.id == R.id.recipeDetailFragment) {
+            return
+        }
+
+        navController.navigate(R.id.action_navigation_home_to_recipeDetailFragment, bundle)
     }
+
 
 }
