@@ -55,7 +55,7 @@ public class RecipeDetailFragment extends Fragment {
             String recipeId = args.getString("recipeId");
 
 
-            recipe = new Recipe(title, ingredients, description, cookingTime, recipeId);
+            recipe = new Recipe(title, ingredients, description, cookingTime, userId);
 
 
             titleTextView.setText(title);
@@ -72,7 +72,7 @@ public class RecipeDetailFragment extends Fragment {
                         repository.removeRecipeFromFavorites(userId, recipeId);
                         updateFavoriteIcon(false);
                     } else {
-                        repository.addRecipeToFavorites(userId, recipe);  // Pass the Recipe object
+                        repository.addRecipeToFavorites(userId, recipeId);
                         updateFavoriteIcon(true);
                     }
                 });

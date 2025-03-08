@@ -76,4 +76,21 @@
         android:textColor="@android:color/white"
         android:padding="12dp"
         android:visibility="gone"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/favoritesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/noFavoritesText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No favorite recipes yet!"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:padding="12dp"
+        android:visibility="gone"/>
+
 </LinearLayout>

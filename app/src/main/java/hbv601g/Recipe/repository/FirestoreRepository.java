@@ -1,5 +1,7 @@
 package hbv601g.Recipe.repository;
 
+import android.util.Log;
+
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -79,16 +81,16 @@ public class FirestoreRepository {
     // FAVORITES OPERATIONS
     // ================
 
-    public void addRecipeToFavorites(String userId, Recipe recipe) {
-        if (userId == null || userId.isEmpty()) {
-            System.err.println("User ID is null or empty!");
+    public void addRecipeToFavorites(String userId, String recipeId) {
+        if (recipeId == null || recipeId.isEmpty()) {
+            Log.e("FirestoreRepository", "Error: Recipe object is null");
             return;
         }
 
         usersCollection.document(userId)
                 .collection("favorites")
-                .document(recipe.getRecipeId())  // Recipe ID as the document ID
-                .set(recipe)  // Store the full recipe object
+                .document(recipeId)
+                .set(recipeId)
                 .addOnSuccessListener(aVoid ->
                         System.out.println("Recipe added to favorites for user: " + userId))
                 .addOnFailureListener(e ->
@@ -154,6 +156,32 @@ public class FirestoreRepository {
                     callback.onResult(false);
                 });
     }
+
+    public void getRecipesByIds(List<String> recipeIds, RecipeCallback callback) {
+        if (recipeIds == null || recipeIds.isEmpty()) {
+            callback.onRecipesLoaded(new ArrayList<>()); // Return empty list if no favorites
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        List<Recipe> recipesList = new ArrayList<>();
+
+        for (String recipeId : recipeIds) {
+            db.collection("recipes").document(recipeId).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            Recipe recipe = documentSnapshot.toObject(Recipe.class);
+                            recipesList.add(recipe);
+                        }
+
+                        if (recipesList.size() == recipeIds.size()) {
+                            callback.onRecipesLoaded(recipesList);
+                        }
+                    })
+                    .addOnFailureListener(e -> callback.onFailure(e));
+        }
+    }
+
 
     // ================
     // REVIEW OPERATIONS
