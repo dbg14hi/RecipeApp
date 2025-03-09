@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,12 +22,14 @@ import java.util.ArrayList;
 
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.entities.Recipe;
+import hbv601g.Recipe.fragments.review.NewReviewFragment;
 import hbv601g.Recipe.repository.FirestoreRepository;
 
 public class RecipeDetailFragment extends Fragment {
 
     private TextView titleTextView, descriptionTextView, ingredientsTextView, cookingTimeTextView;
     private ImageButton favoriteButton;
+    private Button reviewButton; //Arna
     private FirestoreRepository repository;
     private String userId, recipeId;
     private boolean isFavorite = false;
@@ -49,6 +52,7 @@ public class RecipeDetailFragment extends Fragment {
         ingredientsTextView = view.findViewById(R.id.recipe_ingredients);
         cookingTimeTextView = view.findViewById(R.id.recipe_cooking_time);
         favoriteButton = view.findViewById(R.id.favoriteButton);
+        reviewButton = view.findViewById(R.id.reviewButton); //Arna
 
         Bundle args = getArguments();
         if (args != null) {
@@ -72,6 +76,7 @@ public class RecipeDetailFragment extends Fragment {
             checkIfFavorite();
 
             favoriteButton.setOnClickListener(v -> toggleFavorite());
+            reviewButton.setOnClickListener(v -> openReviewFragment());
         }
 
         requireActivity().getOnBackPressedDispatcher().addCallback(
@@ -116,7 +121,18 @@ public class RecipeDetailFragment extends Fragment {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         }
     }
+
+    private void openReviewFragment() {
+        NewReviewFragment newReviewFragment = new NewReviewFragment();
+        Bundle args = new Bundle();
+        args.putString("recipe_id", recipeId);
+        newReviewFragment.setArguments(args);
+
+        NavHostFragment.findNavController(this).navigate(R.id.newReviewFragment, args);
+    }
 }
+
+
 
 
 
