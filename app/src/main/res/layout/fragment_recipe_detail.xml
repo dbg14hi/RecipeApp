@@ -36,4 +36,19 @@
         app:srcCompat="@drawable/ic_favorite_border"
         android:contentDescription="Favorite"
         xmlns:app="http://schemas.android.com/apk/res-auto"/>
+
+    <Button
+        android:id="@+id/reviewButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Review"
+        android:layout_gravity="center"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/reviewRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp" />
+
+
 </LinearLayout>

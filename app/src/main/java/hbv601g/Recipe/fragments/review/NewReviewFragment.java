@@ -12,17 +12,16 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.entities.Review;
-import hbv601g.Recipe.ui.home.ReviewViewModel;
+import hbv601g.Recipe.services.ReviewService;
 
 public class NewReviewFragment extends Fragment {
 
-    private ReviewViewModel viewModel; // Skoða betur
     private RatingBar ratingBar;
     private EditText commentEditText;
+    private ReviewService reviewService;
 
     @Nullable
     @Override
@@ -30,9 +29,7 @@ public class NewReviewFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_review, container, false);
 
-        // Initialize ViewModel
-        viewModel = new ViewModelProvider(this).get(ReviewViewModel.class);
-
+        reviewService = new ReviewService(); // Initialize ReviewService
         ratingBar = view.findViewById(R.id.ratingBar);
         commentEditText = view.findViewById(R.id.commentEditText);
 
@@ -47,12 +44,21 @@ public class NewReviewFragment extends Fragment {
         int rating = (int) ratingBar.getRating();
 
         if (!comment.isEmpty() && rating > 0) {
-            Review newReview = new Review(comment, rating, "user_id", "recipe_id", null);
-            viewModel.addReview(newReview); // Use the ViewModel to add the review
-            Toast.makeText(getContext(), "Umsögn móttekin", Toast.LENGTH_SHORT).show();
-            requireActivity().onBackPressed();
+            Review newReview = new Review(comment, rating, null, "recipe_id", null); // Use actual recipe ID
+            reviewService.addReview(newReview, new ReviewService.OnReviewAddedListener() {
+                @Override
+                public void onSuccess(String reviewId) {
+                    Toast.makeText(getContext(), "Review submitted successfully!", Toast.LENGTH_SHORT).show();
+                    requireActivity().onBackPressed();
+                }
+
+                @Override
+                public void onFailure(String errorMessage) {
+                    Toast.makeText(getContext(), "Failed to submit review: " + errorMessage, Toast.LENGTH_SHORT).show();
+                }
+            });
         } else {
-            Toast.makeText(getContext(), "Vinsamlegast skrifaðu umsögn og gefðu einkunn", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Please enter a comment and rating", Toast.LENGTH_SHORT).show();
         }
     }
 }
