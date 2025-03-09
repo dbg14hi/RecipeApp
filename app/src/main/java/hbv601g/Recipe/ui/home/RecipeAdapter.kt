@@ -25,10 +25,12 @@ class RecipeAdapter(
     override fun onBindViewHolder(holder: RecipeViewHolder, position: Int) {
         val recipe = recipes[position]
         holder.bind(recipe)
+
         holder.itemView.setOnClickListener {
             listener.onRecipeClick(recipe)
         }
     }
+
 
     override fun getItemCount(): Int = recipes.size
 
