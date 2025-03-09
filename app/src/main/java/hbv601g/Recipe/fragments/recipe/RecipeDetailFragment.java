@@ -101,7 +101,6 @@ public class RecipeDetailFragment extends Fragment {
 
 
             favoriteButton.setOnClickListener(v -> toggleFavorite(userId, recipeId));
-            favoriteButton.setOnClickListener(v -> toggleFavorite());
             reviewButton.setOnClickListener(v -> openReviewFragment());
 
             fetchReviews();
