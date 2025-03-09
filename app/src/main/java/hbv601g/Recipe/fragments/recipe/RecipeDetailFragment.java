@@ -2,6 +2,7 @@ package hbv601g.Recipe.fragments.recipe;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,12 +13,19 @@ import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.entities.Recipe;
@@ -57,6 +65,7 @@ public class RecipeDetailFragment extends Fragment {
             ArrayList<String> ingredients = args.getStringArrayList("recipeIngredients");
             int cookingTime = args.getInt("recipeCookingTime");
             recipeId = args.getString("recipeId");
+
             if (recipeId == null || recipeId.isEmpty()) {
                 Toast.makeText(getContext(), "Error: Recipe ID is missing", Toast.LENGTH_SHORT).show();
                 return view;
@@ -69,9 +78,11 @@ public class RecipeDetailFragment extends Fragment {
             ingredientsTextView.setText(TextUtils.join(", ", ingredients));
             cookingTimeTextView.setText("Cooking Time: " + cookingTime + " minutes");
 
+            // Check if recipe is already a favorite and update UI
             checkIfFavorite();
 
-            favoriteButton.setOnClickListener(v -> toggleFavorite());
+            // Handle favorite button click
+            favoriteButton.setOnClickListener(v -> toggleFavorite(userId, recipeId));
         }
 
         requireActivity().getOnBackPressedDispatcher().addCallback(
@@ -88,22 +99,76 @@ public class RecipeDetailFragment extends Fragment {
     }
 
     private void checkIfFavorite() {
-        repository.isRecipeFavorite(userId, recipeId, isFav -> {
-            isFavorite = isFav;
-            updateFavoriteIcon(isFavorite);
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        userRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                List<String> favorites = (List<String>) documentSnapshot.get("favorites");
+                isFavorite = favorites != null && favorites.contains(recipeId);
+            } else {
+                isFavorite = false;
+            }
+            updateFavoriteButtonUI(isFavorite);  // Update UI after checking
+        }).addOnFailureListener(e -> Log.e("Favorites", "Failed to check favorite", e));
+    }
+
+
+    private void toggleFavorite(String userId, String recipeId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        userRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                List<String> favorites = (List<String>) documentSnapshot.get("favorites");
+
+                if (favorites == null) {
+                    favorites = new ArrayList<>();
+                }
+
+                if (favorites.contains(recipeId)) {
+                    // Remove from favorites
+                    favorites.remove(recipeId);
+                    isFavorite = false;
+                } else {
+                    // Add to favorites
+                    favorites.add(recipeId);
+                    isFavorite = true;
+                }
+
+                // Update Firestore and UI **only if Firestore update is successful**
+                userRef.update("favorites", favorites)
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("Favorites", "Updated successfully");
+                            updateFavoriteButtonUI(isFavorite);
+                        })
+                        .addOnFailureListener(e -> Log.e("Favorites", "Error updating", e));
+
+            } else {
+                // If user doc doesn't exist, create it and add favorite
+                Map<String, Object> userData = new HashMap<>();
+                userData.put("favorites", Arrays.asList(recipeId));
+
+                userRef.set(userData)
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("Favorites", "User created with favorite");
+                            isFavorite = true;
+                            updateFavoriteButtonUI(isFavorite);
+                        })
+                        .addOnFailureListener(e -> Log.e("Favorites", "Error creating user", e));
+            }
         });
     }
 
-    private void toggleFavorite() {
-        if (isFavorite) {
-            repository.removeRecipeFromFavorites(userId, recipeId);
-            isFavorite = false;
+    // Function to update UI state
+    private void updateFavoriteButtonUI(boolean isFavorited) {
+        if (isFavorited) {
+            favoriteButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.favorite_active));
         } else {
-            repository.addRecipeToFavorites(userId, recipe);
-            isFavorite = true;
+            favoriteButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.favorite_inactive));
         }
-        updateFavoriteIcon(isFavorite);
     }
+
 
     private void updateFavoriteIcon(boolean isFavorite) {
         favoriteButton.setImageResource(isFavorite ? R.drawable.ic_heart_filled : R.drawable.ic_heart_empty);

@@ -23,6 +23,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.services.UserService;
@@ -71,9 +72,10 @@ public class ProfileFragment extends Fragment {
 
         favoriteRecipes = new ArrayList<>();
         favoritesAdapter = new FavoritesAdapter(favoriteRecipes, recipe -> {
-            Toast.makeText(requireContext(), "Clicked on: " + recipe.getTitle(), Toast.LENGTH_SHORT).show();
+            removeFromFavorites(recipe);
             return null;
         });
+
         favoritesRecyclerView.setAdapter(favoritesAdapter);
 
         // 🔹 Update UI when fragment is opened
@@ -154,13 +156,43 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    // 🔹 Fetch and display favorite recipes
+    private void removeFromFavorites(Recipe recipe) {
+        String userId = auth.getCurrentUser().getUid();
+        if (userId == null) {
+            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        userRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                List<String> favorites = (List<String>) documentSnapshot.get("favorites");
+                if (favorites != null && favorites.contains(recipe.getRecipeId())) {
+                    favorites.remove(recipe.getRecipeId());
+
+                    // 🔹 Update Firestore
+                    userRef.update("favorites", favorites)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(requireContext(), "Removed from favorites", Toast.LENGTH_SHORT).show();
+
+                                // 🔹 Remove from local list & update RecyclerView
+                                favoritesAdapter.removeRecipe(recipe);
+                            })
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(requireContext(), "Failed to remove favorite", Toast.LENGTH_SHORT).show());
+                }
+            }
+        }).addOnFailureListener(e ->
+                Log.e("Favorites", "Error removing favorite", e));
+    }
+
     // 🔹 Fetch and display favorite recipes
     private void loadUserFavorites(String userId) {
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        List<String> favoriteRecipeIds = (List<String>) documentSnapshot.get("userFavourites");
+                        List<String> favoriteRecipeIds = (List<String>) documentSnapshot.get("favorites"); // ✅ Use "favorites" here
 
                         if (favoriteRecipeIds == null || favoriteRecipeIds.isEmpty()) {
                             Log.d("Favorites", "No favorites found.");
@@ -194,7 +226,6 @@ public class ProfileFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> Log.e("Favorites", "Failed to fetch user data", e));
     }
-
 
 
 }
