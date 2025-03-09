@@ -8,7 +8,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.entities.Review;
@@ -33,11 +35,19 @@ public class FirestoreRepository {
 
     public void addRecipe(Recipe recipe) {
         recipeCollection.add(recipe)
-                .addOnSuccessListener(documentReference ->
-                        System.out.println("Recipe added with ID: " + documentReference.getId()))
+                .addOnSuccessListener(documentReference -> {
+                    String recipeId = documentReference.getId();
+
+                    documentReference.update("recipeId", recipeId)
+                            .addOnSuccessListener(aVoid ->
+                                    System.out.println("Recipe successfully added with ID: " + recipeId))
+                            .addOnFailureListener(e ->
+                                    System.err.println("Failed to update recipe ID: " + e.getMessage()));
+                })
                 .addOnFailureListener(e ->
                         System.err.println("Error adding recipe: " + e.getMessage()));
     }
+
 
     public void getRecipes(RecipeCallback callback) {
         recipeCollection.get().addOnCompleteListener(task -> {
@@ -81,25 +91,33 @@ public class FirestoreRepository {
     // FAVORITES OPERATIONS
     // ================
 
-    public void addRecipeToFavorites(String userId, String recipeId) {
-        if (recipeId == null || recipeId.isEmpty()) {
-            Log.e("FirestoreRepository", "Error: Recipe object is null");
+    public void addRecipeToFavorites(String userId, Recipe recipe) {
+        if (recipe == null || recipe.getRecipeId() == null || recipe.getRecipeId().isEmpty()) {
+            Log.e("FirestoreRepository", "Error: Recipe object is null or missing an ID");
             return;
         }
 
+        Map<String, Object> favoriteData = new HashMap<>();
+        favoriteData.put("recipeId", recipe.getRecipeId());
+        favoriteData.put("title", recipe.getTitle());
+        favoriteData.put("description", recipe.getDescription());
+        favoriteData.put("cookingTime", recipe.getCookingTime());
+        favoriteData.put("ingredients", recipe.getIngredients());
+
         usersCollection.document(userId)
                 .collection("favorites")
-                .document(recipeId)
-                .set(recipeId)
+                .document(recipe.getRecipeId())  // Creates a document inside 'favorites'
+                .set(favoriteData)  // Stores the full recipe data
                 .addOnSuccessListener(aVoid ->
-                        System.out.println("Recipe added to favorites for user: " + userId))
+                        Log.d("FirestoreRepository", "Recipe added to favorites for user: " + userId))
                 .addOnFailureListener(e ->
-                        System.err.println("Error adding recipe to favorites: " + e.getMessage()));
+                        Log.e("FirestoreRepository", "Error adding recipe to favorites: " + e.getMessage()));
     }
+
 
     public void removeRecipeFromFavorites(String userId, String recipeId) {
         if (userId == null || userId.isEmpty() || recipeId == null || recipeId.isEmpty()) {
-            System.err.println("User ID or Recipe ID is null or empty!");
+            Log.e("FirestoreRepository", "Error: User ID or Recipe ID is null or empty!");
             return;
         }
 
@@ -108,10 +126,11 @@ public class FirestoreRepository {
                 .document(recipeId)
                 .delete()
                 .addOnSuccessListener(aVoid ->
-                        System.out.println("Recipe removed from favorites for user: " + userId))
+                        Log.d("FirestoreRepository", "Recipe removed from favorites for user: " + userId))
                 .addOnFailureListener(e ->
-                        System.err.println("Error removing recipe from favorites: " + e.getMessage()));
+                        Log.e("FirestoreRepository", "Error removing recipe from favorites: " + e.getMessage()));
     }
+
 
     public void getUserFavorites(String userId, RecipeCallback callback) {
         if (userId == null || userId.isEmpty()) {
@@ -265,4 +284,5 @@ public class FirestoreRepository {
         void onReviewLoaded(Review review);
         void onFailure(Exception e);
     }
+
 }

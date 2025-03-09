@@ -7,26 +7,29 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.fragment.app.Fragment;
-import androidx.appcompat.app.AppCompatActivity;
-import java.util.ArrayList;
-import hbv601g.Recipe.R;
-import android.view.MenuItem;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.firebase.auth.FirebaseAuth;
-import hbv601g.Recipe.repository.FirestoreRepository;
+
+import java.util.ArrayList;
+
+import hbv601g.Recipe.R;
 import hbv601g.Recipe.entities.Recipe;
+import hbv601g.Recipe.repository.FirestoreRepository;
 
 public class RecipeDetailFragment extends Fragment {
 
     private TextView titleTextView, descriptionTextView, ingredientsTextView, cookingTimeTextView;
     private ImageButton favoriteButton;
     private FirestoreRepository repository;
-    private String userId;
+    private String userId, recipeId;
+    private boolean isFavorite = false;
     private Recipe recipe;
 
     @Override
@@ -40,11 +43,12 @@ public class RecipeDetailFragment extends Fragment {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
+        // Initialize UI elements
         titleTextView = view.findViewById(R.id.recipe_title);
         descriptionTextView = view.findViewById(R.id.recipe_description);
         ingredientsTextView = view.findViewById(R.id.recipe_ingredients);
         cookingTimeTextView = view.findViewById(R.id.recipe_cooking_time);
-        favoriteButton = view.findViewById(R.id.favoriteButton); // The favorite button
+        favoriteButton = view.findViewById(R.id.favoriteButton);
 
         Bundle args = getArguments();
         if (args != null) {
@@ -52,33 +56,23 @@ public class RecipeDetailFragment extends Fragment {
             String description = args.getString("recipeDescription");
             ArrayList<String> ingredients = args.getStringArrayList("recipeIngredients");
             int cookingTime = args.getInt("recipeCookingTime");
-            String recipeId = args.getString("recipeId");
-
+            recipeId = args.getString("recipeId");
+            if (recipeId == null || recipeId.isEmpty()) {
+                Toast.makeText(getContext(), "Error: Recipe ID is missing", Toast.LENGTH_SHORT).show();
+                return view;
+            }
 
             recipe = new Recipe(title, ingredients, description, cookingTime, userId);
-
 
             titleTextView.setText(title);
             descriptionTextView.setText(description);
             ingredientsTextView.setText(TextUtils.join(", ", ingredients));
             cookingTimeTextView.setText("Cooking Time: " + cookingTime + " minutes");
 
+            checkIfFavorite();
 
-            repository.isRecipeFavorite(userId, recipeId, isFavorite -> {
-                updateFavoriteIcon(isFavorite);
-
-                favoriteButton.setOnClickListener(v -> {
-                    if (isFavorite) {
-                        repository.removeRecipeFromFavorites(userId, recipeId);
-                        updateFavoriteIcon(false);
-                    } else {
-                        repository.addRecipeToFavorites(userId, recipeId);
-                        updateFavoriteIcon(true);
-                    }
-                });
-            });
+            favoriteButton.setOnClickListener(v -> toggleFavorite());
         }
-
 
         requireActivity().getOnBackPressedDispatcher().addCallback(
                 getViewLifecycleOwner(),
@@ -93,12 +87,26 @@ public class RecipeDetailFragment extends Fragment {
         return view;
     }
 
-    private void updateFavoriteIcon(boolean isFavorite) {
+    private void checkIfFavorite() {
+        repository.isRecipeFavorite(userId, recipeId, isFav -> {
+            isFavorite = isFav;
+            updateFavoriteIcon(isFavorite);
+        });
+    }
+
+    private void toggleFavorite() {
         if (isFavorite) {
-            favoriteButton.setImageResource(R.drawable.ic_heart_filled);
+            repository.removeRecipeFromFavorites(userId, recipeId);
+            isFavorite = false;
         } else {
-            favoriteButton.setImageResource(R.drawable.ic_heart_empty);
+            repository.addRecipeToFavorites(userId, recipe);
+            isFavorite = true;
         }
+        updateFavoriteIcon(isFavorite);
+    }
+
+    private void updateFavoriteIcon(boolean isFavorite) {
+        favoriteButton.setImageResource(isFavorite ? R.drawable.ic_heart_filled : R.drawable.ic_heart_empty);
     }
 
     @Override
@@ -109,5 +117,6 @@ public class RecipeDetailFragment extends Fragment {
         }
     }
 }
+
 
 

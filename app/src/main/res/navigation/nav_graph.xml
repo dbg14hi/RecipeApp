@@ -88,6 +88,12 @@
         android:label="Create Recipe"
         tools:layout="@layout/fragment_create_recipe" />
 
+    <action
+        android:id="@+id/action_createRecipeFragment_to_navigation_home"
+        app:destination="@id/navigation_home"
+        app:popUpTo="@id/navigation_home"
+        app:popUpToInclusive="true" />
+
     <fragment
         android:id="@+id/recipeDetailFragment"
         android:name="hbv601g.Recipe.fragments.recipe.RecipeDetailFragment"

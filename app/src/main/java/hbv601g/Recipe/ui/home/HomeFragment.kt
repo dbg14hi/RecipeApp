@@ -12,10 +12,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import hbv601g.Recipe.R
 import hbv601g.Recipe.databinding.FragmentHomeBinding
 import hbv601g.Recipe.entities.Recipe
-
 
 class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
@@ -25,6 +26,7 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: RecipeAdapter
     private lateinit var createRecipeFab: FloatingActionButton
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,14 +52,12 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             createRecipeFab.visibility = View.GONE
         }
 
-        // Pass 'this' to the adapter as the click listener
+        // Initialize adapter and pass 'this' as the click listener
         adapter = RecipeAdapter(emptyList(), this)
         recyclerView.adapter = adapter
 
-        homeViewModel.recipesLiveData.observe(viewLifecycleOwner) { recipes ->
-            Log.d("HomeFragment", "Received ${recipes?.size ?: 0} recipes in Fragment")
-            adapter.updateData(recipes ?: emptyList())
-        }
+        // Fetch recipes in real-time
+        fetchRecipesInRealTime()
 
         return root
     }
@@ -67,8 +67,40 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         _binding = null
     }
 
+    private fun fetchRecipesInRealTime() {
+        db.collection("recipes")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener { querySnapshot, error ->
+                if (error != null) {
+                    Log.e("HomeFragment", "Error loading recipes: ", error)
+                    return@addSnapshotListener
+                }
+
+                if (querySnapshot == null || querySnapshot.isEmpty) {
+                    Log.d("HomeFragment", "No recipes found in Firestore.")
+                    return@addSnapshotListener
+                }
+
+                val recipeList = mutableListOf<Recipe>()
+                for (document in querySnapshot.documents) {
+                    val recipe = document.toObject(Recipe::class.java)
+                    if (recipe != null) {
+                        recipe.recipeId = document.id
+                        recipeList.add(recipe)
+                    } else {
+                        Log.e("HomeFragment", "Error parsing recipe: ${document.id}")
+                    }
+                }
+
+                Log.d("HomeFragment", "Loaded ${recipeList.size} recipes")
+                adapter.updateData(recipeList)
+            }
+    }
+
+
     override fun onRecipeClick(recipe: Recipe) {
         val bundle = Bundle().apply {
+            putString("recipeId", recipe.recipeId)
             putString("recipeTitle", recipe.title)
             putString("recipeDescription", recipe.description)
             putStringArrayList("recipeIngredients", ArrayList(recipe.ingredients))
@@ -77,13 +109,11 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
         val navController = findNavController()
 
-        // Prevent navigation if already in RecipeDetailFragment
+        // Ensure we are not already in RecipeDetailFragment to prevent crashes
         if (navController.currentDestination?.id == R.id.recipeDetailFragment) {
             return
         }
 
         navController.navigate(R.id.action_navigation_home_to_recipeDetailFragment, bundle)
     }
-
-
 }

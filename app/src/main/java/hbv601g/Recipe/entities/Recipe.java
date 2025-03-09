@@ -1,5 +1,6 @@
 package hbv601g.Recipe.entities;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class Recipe {
@@ -12,9 +13,9 @@ public class Recipe {
 
     public Recipe() {}
 
-    public Recipe(String title, List<String> ingredients, String description, int cookingTime, String userId) {
+    public Recipe(String title, Object ingredients, String description, int cookingTime, String userId) {
         this.title = title;
-        this.ingredients = ingredients;
+        setIngredients(ingredients);
         this.description = description;
         this.cookingTime = cookingTime;
         this.userId = userId;
@@ -30,7 +31,15 @@ public class Recipe {
     public void setDescription(String description) { this.description = description; }
 
     public List<String> getIngredients() { return ingredients; }
-    public void setIngredients(List<String> ingredients) { this.ingredients = ingredients; }
+    public void setIngredients(Object ingredients) {
+        if (ingredients instanceof List) {
+            this.ingredients = (List<String>) ingredients;
+        } else if (ingredients instanceof String) {
+            this.ingredients = Arrays.asList(((String) ingredients).split("\\s*,\\s*"));
+        } else {
+            this.ingredients = null;
+        }
+    }
 
     public int getCookingTime() { return cookingTime; }
     public void setCookingTime(int cookingTime) { this.cookingTime = cookingTime; }
