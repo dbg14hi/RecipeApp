@@ -1,7 +1,9 @@
 package hbv601g.Recipe.fragments.recipe;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +11,8 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -19,17 +23,23 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.entities.Recipe;
+import hbv601g.Recipe.entities.Review;
 import hbv601g.Recipe.fragments.review.NewReviewFragment;
+import hbv601g.Recipe.fragments.review.ReviewAdapter;
 import hbv601g.Recipe.repository.FirestoreRepository;
 
 public class RecipeDetailFragment extends Fragment {
 
     private TextView titleTextView, descriptionTextView, ingredientsTextView, cookingTimeTextView;
     private ImageButton favoriteButton;
-    private Button reviewButton; //Arna
+
+    private ReviewAdapter reviewAdapter; //Arna
+
+    private List<Review> reviewList; //Arna
     private FirestoreRepository repository;
     private String userId, recipeId;
     private boolean isFavorite = false;
@@ -52,7 +62,15 @@ public class RecipeDetailFragment extends Fragment {
         ingredientsTextView = view.findViewById(R.id.recipe_ingredients);
         cookingTimeTextView = view.findViewById(R.id.recipe_cooking_time);
         favoriteButton = view.findViewById(R.id.favoriteButton);
-        reviewButton = view.findViewById(R.id.reviewButton); //Arna
+        //Arna
+        Button reviewButton; //Arna
+        reviewButton = view.findViewById(R.id.reviewButton);//Arna
+        RecyclerView reviewRecyclerView; //Arna
+        reviewRecyclerView = view.findViewById(R.id.reviewRecyclerView); //Arna
+        reviewRecyclerView.setLayoutManager(new LinearLayoutManager(getContext())); //Arna
+        reviewList = new ArrayList<>(); //Arna
+        reviewAdapter = new ReviewAdapter(reviewList); //Arna
+        reviewRecyclerView.setAdapter(reviewAdapter); //Arna
 
         Bundle args = getArguments();
         if (args != null) {
@@ -77,6 +95,8 @@ public class RecipeDetailFragment extends Fragment {
 
             favoriteButton.setOnClickListener(v -> toggleFavorite());
             reviewButton.setOnClickListener(v -> openReviewFragment());
+
+            fetchReviews();
         }
 
         requireActivity().getOnBackPressedDispatcher().addCallback(
@@ -122,6 +142,7 @@ public class RecipeDetailFragment extends Fragment {
         }
     }
 
+    //Virkni á add review takka.
     private void openReviewFragment() {
         NewReviewFragment newReviewFragment = new NewReviewFragment();
         Bundle args = new Bundle();
@@ -129,6 +150,28 @@ public class RecipeDetailFragment extends Fragment {
         newReviewFragment.setArguments(args);
 
         NavHostFragment.findNavController(this).navigate(R.id.newReviewFragment, args);
+    }
+
+    private void fetchReviews() {
+        if (recipeId != null && !recipeId.isEmpty()) {
+            repository.getReviewsByRecipe(recipeId, new FirestoreRepository.ReviewCallback() {
+                @SuppressLint("NotifyDataSetChanged")
+                @Override
+                public void onReviewsLoaded(List<Review> reviews) {
+                    reviewList.clear();
+                    reviewList.addAll(reviews);
+                    reviewAdapter.notifyDataSetChanged();
+
+                    Log.d("RecipeDetailFragment", "Reviews loaded: " + reviews.size());
+                    //bætti þessu við til að ath rétta virkni
+                }
+
+                @Override
+                public void onFailure(Exception e) {
+                    Toast.makeText(getContext(), "Failed to load reviews: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 }
 
