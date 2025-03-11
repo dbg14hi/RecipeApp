@@ -38,8 +38,6 @@ public class CreateRecipeFragment extends Fragment {
     private EditText titleInput, descriptionInput, ingredientsInput, cookingTimeInput;
     private Button submitRecipeButton;
 
-    private CheckBox checkboxVegan;
-
     private Spinner categorySpinner;
 
 
@@ -64,7 +62,7 @@ public class CreateRecipeFragment extends Fragment {
         submitRecipeButton = view.findViewById(R.id.submitRecipeButton);
         categorySpinner = view.findViewById(R.id.categorySpinner);
 
-        String[] categories = {"Select category", "Vegetarian", "Vegan", "Nut-free", "Gluten-free", "Dairy-free"};
+        String[] categories = {"Select category", "Vegetarian", "Vegan", "Meat"};
 
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
@@ -93,6 +91,8 @@ public class CreateRecipeFragment extends Fragment {
         String description = descriptionInput.getText().toString().trim();
         String ingredientsText = ingredientsInput.getText().toString().trim();
         String cookingTimeStr = cookingTimeInput.getText().toString().trim();
+       // String mealCategory = categorySpinner.getContext().toString().trim(); //Arna K
+
 
         if (title.isEmpty() || description.isEmpty() || ingredientsText.isEmpty() || cookingTimeStr.isEmpty()) {
             Toast.makeText(getContext(), "All fields are required!", Toast.LENGTH_SHORT).show();
@@ -120,6 +120,7 @@ public class CreateRecipeFragment extends Fragment {
         recipe.put("cookingTime", cookingTime);
         recipe.put("userId", userId);
         recipe.put("timestamp", FieldValue.serverTimestamp());
+        //recipe.put("mealCategory", categorySpinner); //Arna K
 
         db.collection("recipes").add(recipe)
                 .addOnSuccessListener(documentReference -> {

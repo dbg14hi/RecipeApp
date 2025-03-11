@@ -4,13 +4,17 @@ import android.util.Log;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.entities.Review;
@@ -239,7 +243,7 @@ public class FirestoreRepository {
                         Review review = documentSnapshot.toObject(Review.class);
                         callback.onReviewLoaded(review);
                     } else {
-                        callback.onReviewLoaded(null);  // Review not found
+                        callback.onReviewLoaded(null);
                     }
                 })
                 .addOnFailureListener(callback::onFailure);
@@ -260,6 +264,29 @@ public class FirestoreRepository {
                         System.out.println("Review deleted"))
                 .addOnFailureListener(e ->
                         System.err.println("Error deleting review: " + e.getMessage()));
+    }
+
+    public void getFilteredRecipes(@NotNull String title, int cookingTime, @NotNull FirestoreRepository.RecipeCallback callback) {
+        Query query = db.collection("recipes");
+
+        if (!title.isEmpty()) {
+            query = query.whereEqualTo("title", title);
+        }
+        if (cookingTime > 0) {
+            query = query.whereEqualTo("cookingTime", cookingTime);
+        }
+
+        query.get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Recipe> recipes = new ArrayList<>();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Recipe recipe = document.toObject(Recipe.class);
+                        recipe.setRecipeId(document.getId());
+                        recipes.add(recipe);
+                    }
+                    callback.onRecipesLoaded(recipes);
+                })
+                .addOnFailureListener(callback::onFailure);
     }
 
     // ================
