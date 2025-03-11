@@ -62,7 +62,8 @@ public class RecipeDetailFragment extends Fragment {
         ingredientsTextView = view.findViewById(R.id.recipe_ingredients);
         cookingTimeTextView = view.findViewById(R.id.recipe_cooking_time);
         favoriteButton = view.findViewById(R.id.favoriteButton);
-        //Arna
+
+      //Arna
         Button reviewButton; //Arna
         reviewButton = view.findViewById(R.id.reviewButton);//Arna
         RecyclerView reviewRecyclerView; //Arna
@@ -79,17 +80,20 @@ public class RecipeDetailFragment extends Fragment {
             ArrayList<String> ingredients = args.getStringArrayList("recipeIngredients");
             int cookingTime = args.getInt("recipeCookingTime");
             recipeId = args.getString("recipeId");
+            boolean isVegan = args.getBoolean("isVegan");
+            String category = args.getString("category");
             if (recipeId == null || recipeId.isEmpty()) {
                 Toast.makeText(getContext(), "Error: Recipe ID is missing", Toast.LENGTH_SHORT).show();
                 return view;
             }
 
-            recipe = new Recipe(title, ingredients, description, cookingTime, userId);
+            recipe = new Recipe(title, ingredients, description, cookingTime, userId, isVegan, category);
 
             titleTextView.setText(title);
             descriptionTextView.setText(description);
             ingredientsTextView.setText(TextUtils.join(", ", ingredients));
             cookingTimeTextView.setText("Cooking Time: " + cookingTime + " minutes");
+
 
             checkIfFavorite();
 

@@ -1,11 +1,15 @@
 package hbv601g.Recipe.fragments.recipe;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
@@ -34,6 +38,13 @@ public class CreateRecipeFragment extends Fragment {
     private EditText titleInput, descriptionInput, ingredientsInput, cookingTimeInput;
     private Button submitRecipeButton;
 
+    private CheckBox checkboxVegan;
+
+    private Spinner categorySpinner;
+
+
+
+    @SuppressLint("WrongViewCast")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -51,6 +62,16 @@ public class CreateRecipeFragment extends Fragment {
         ingredientsInput = view.findViewById(R.id.ingredientsInput);
         cookingTimeInput = view.findViewById(R.id.cookingTimeInput);
         submitRecipeButton = view.findViewById(R.id.submitRecipeButton);
+        categorySpinner = view.findViewById(R.id.categorySpinner);
+
+        String[] categories = {"Select category", "Vegetarian", "Vegan", "Nut-free", "Gluten-free", "Dairy-free"};
+
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        categorySpinner.setAdapter(adapter);
+
 
         submitRecipeButton.setOnClickListener(v -> createRecipe());
 

@@ -48,6 +48,16 @@
         android:background="@android:color/white"
         android:layout_marginTop="8dp"/>
 
+    <!-- Category Spinner -->
+    <Spinner
+        android:id="@+id/categorySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Meal category"
+        android:padding="12dp"
+        android:background="@android:color/white"
+        android:layout_marginTop="8dp" />
+
     <!-- Submit Recipe Button -->
     <Button
         android:id="@+id/submitRecipeButton"
