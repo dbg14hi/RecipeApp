@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RatingBar;
 import android.widget.Toast;
@@ -24,13 +23,13 @@ public class ReviewEditFragment extends Fragment {
     private ReviewViewModel viewModel;
     private RatingBar ratingBar;
     private EditText commentEditText;
-    private String reviewId; // ID of the review to edit
+    private String reviewId;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            reviewId = getArguments().getString("reviewId"); // Get review ID from arguments
+            reviewId = getArguments().getString("reviewId");
         }
     }
 
@@ -40,7 +39,6 @@ public class ReviewEditFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_review, container, false);
 
-        // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(ReviewViewModel.class);
 
         ratingBar = view.findViewById(R.id.ratingBar);
@@ -50,21 +48,26 @@ public class ReviewEditFragment extends Fragment {
         view.findViewById(R.id.deleteButton).setOnClickListener(v -> deleteReview());
         view.findViewById(R.id.cancelButton).setOnClickListener(v -> requireActivity().onBackPressed());
 
-        // Load existing review data
         loadReviewData();
 
         return view;
     }
 
     private void loadReviewData() {
-        // Load review data using ViewModel or repository and populate fields
-        viewModel.getReviewById(reviewId); // Call to load the review data
+        viewModel.loadReviewById(reviewId); // 🔔 This is the correct method now!
+
         viewModel.getSingleReviewLiveData().observe(getViewLifecycleOwner(), review -> {
             if (review != null) {
                 ratingBar.setRating(review.getRating().floatValue());
                 commentEditText.setText(review.getComment());
             } else {
                 Toast.makeText(getContext(), "Review not found", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        viewModel.getErrorLiveData().observe(getViewLifecycleOwner(), errorMessage -> {
+            if (errorMessage != null) {
+                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -75,9 +78,7 @@ public class ReviewEditFragment extends Fragment {
 
         if (!comment.isEmpty() && rating > 0) {
             Review updatedReview = new Review(comment, rating, "user_id", "recipe_id", null);
-            updatedReview.setId(reviewId); // Set the ID of the review to be updated
-
-            // Use the ViewModel to update the review
+            updatedReview.setId(reviewId);
             viewModel.updateReview(updatedReview);
             Toast.makeText(getContext(), "Review updated successfully", Toast.LENGTH_SHORT).show();
             requireActivity().onBackPressed();

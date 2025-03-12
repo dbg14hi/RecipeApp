@@ -8,26 +8,48 @@ import androidx.recyclerview.widget.RecyclerView
 import hbv601g.Recipe.R
 import hbv601g.Recipe.entities.Recipe
 
-class RecipeAdapter(private val recipes: List<Recipe>) :
-    RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder>() {
+class RecipeAdapter(
+    private var recipes: List<Recipe>,
+    private val listener: OnRecipeClickListener
+) : RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder>() {
 
-    class RecipeViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val recipeName: TextView = view.findViewById(R.id.recipe_name)
-        val recipeIngredients: TextView = view.findViewById(R.id.recipe_ingredients)
+    interface OnRecipeClickListener {
+        fun onRecipeClick(recipe: Recipe)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecipeViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_recipe, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_recipe, parent, false)
         return RecipeViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: RecipeViewHolder, position: Int) {
         val recipe = recipes[position]
-        holder.recipeName.text = recipe.title
-        holder.recipeIngredients.text = recipe.ingredients.joinToString(", ")
+        holder.bind(recipe)
+
+        holder.itemView.setOnClickListener {
+            listener.onRecipeClick(recipe)
+        }
     }
 
+
     override fun getItemCount(): Int = recipes.size
+
+    fun updateData(newRecipes: List<Recipe>) {
+        recipes = newRecipes
+        notifyDataSetChanged()
+    }
+
+    inner class RecipeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun bind(recipe: Recipe) {
+            itemView.findViewById<TextView>(R.id.recipe_name).text = recipe.title
+            itemView.findViewById<TextView>(R.id.recipe_ingredients).text = recipe.ingredients.joinToString(", ")
+
+            itemView.setOnClickListener {
+                listener.onRecipeClick(recipe)
+            }
+        }
+    }
 }
+
+
 

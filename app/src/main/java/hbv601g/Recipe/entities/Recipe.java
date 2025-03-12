@@ -1,191 +1,75 @@
 package hbv601g.Recipe.entities;
 
-import android.media.Rating;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
+import com.google.firebase.Timestamp;
+import java.util.Arrays;
 import java.util.List;
 
 public class Recipe {
-    private Long recipeId;
+    private String recipeId;
     private String title;
     private String description;
     private List<String> ingredients;
     private int cookingTime;
-    private User user;
-//    private HashSet<MealCategory> mealCategory;
-//    private HashSet<DietaryRestriction> dieteryRestrictions;
-//    private final String recipePictureUrl;
-//    private List<Review> reviews;
+    private String userId;
+    private Timestamp timestamp;  // Add timestamp field
+    private String mealCategory;  // Add meal category field
 
-//    private List<User> usersWhoFavorited;
-//    private int rating;
-//    private List<Integer> ratings;
+    public Recipe() {}
 
-    public Recipe(){
-
-    }
-
-//
-
-    public Recipe(String title, List<String> ingredients, String description, int cookingTime) {
+    public Recipe(String title, Object ingredients, String description, int cookingTime, String userId, Timestamp timestamp, String mealCategory) {
         this.title = title;
-        this.ingredients = ingredients;
+        setIngredients(ingredients);
         this.description = description;
         this.cookingTime = cookingTime;
-        this.user = user;
-//        this.usersWhoFavorited = new List<>();
-//        this.reviews = new List<Review>();
-//        this.ratings = new HashSet<>();
-//
-//        this.dietaryRestrictions = dietaryRestrictions;
-//        this.mealCategories = mealCategories;
-//
-//        this.uploadTime = LocalDateTime.now();
-//        this.recipePictureUrl = recipePictureUrl;
-
+        this.userId = userId;
+        this.timestamp = timestamp;
+        this.mealCategory = mealCategory;
     }
 
-    public long getRecipeId() {
-        return recipeId;
+    public String getRecipeId() { return recipeId; }
+    public void setRecipeId(String recipeId) { this.recipeId = recipeId; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public List<String> getIngredients() { return ingredients; }
+    public void setIngredients(Object ingredients) {
+        if (ingredients instanceof List) {
+            this.ingredients = (List<String>) ingredients;
+        } else if (ingredients instanceof String) {
+            this.ingredients = Arrays.asList(((String) ingredients).split("\\s*,\\s*"));
+        } else {
+            this.ingredients = null;
+        }
     }
 
-    public void setRecipeId(long recipeId) {
-        this.recipeId = recipeId;
-    }
+    public int getCookingTime() { return cookingTime; }
+    public void setCookingTime(int cookingTime) { this.cookingTime = cookingTime; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public Timestamp getTimestamp() { return timestamp; }  // Getter for timestamp
+    public void setTimestamp(Timestamp timestamp) { this.timestamp = timestamp; }  // Setter for timestamp
 
-    public List<String> getIngredients() {
-        return ingredients;
-    }
-
-    public void setIngredients(List<String> ingredients) {
-        this.ingredients = ingredients;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public int getCookingTime() {
-        return cookingTime;
-    }
-
-    public void setCookTime(int cookTime) {
-        this.cookingTime = cookingTime;
-    }
-
-//    public Set<DietaryRestriction> getDietaryRestrictions() {
-//        return dietaryRestrictions;
-//    }
-//
-//    public void setDietaryRestrictions(Set<DietaryRestriction> dietaryRestrictions) {
-//        this.dietaryRestrictions = dietaryRestrictions;
-//    }
-//
-//    public Set<MealCategory> getMealCategories() {
-//        return mealCategories;
-//    }
-//
-//    public void setMealCategories(Set<MealCategory> mealCategories) {
-//        this.mealCategories = mealCategories;
-//    }
-//    public void addRating(int rating) {
-//        this.ratings.add(rating);
-//        updateRatings();
-//    }
-//
-//    public void updateRatings() {
-//
-//        int ratingSum = 0;
-//        for (int i : ratings) {
-//            ratingSum += i;
-//        }
-//
-//        double ratingAvg = (double) ratingSum / ratings.size();
-//        if (ratingAvg > 4.5) {
-//            this.rating = 5;
-//        }
-//        else if (ratingAvg > 3.5) {
-//            this.rating = 4;
-//        }
-//        else if (ratingAvg > 2.5) {
-//            this.rating = 3;
-//        }
-//        else if (ratingAvg > 1.5) {
-//            this.rating = 2;
-//        }
-//        else {
-//            this.rating = 1;
-//        }
-//    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-//    public HashSet<User> getUsersWhoFavorited() {
-//        return usersWhoFavorited;
-//    }
-//
-//    public void setUsersWhoFavorited(HashSet<User> usersWhoFavorited) {
-//        this.usersWhoFavorited = usersWhoFavorited;
-//    }
-
-//    public LocalDateTime getUploadTime() {
-//        return uploadTime;
-//    }
-//
-//    public void setUploadTime(LocalDateTime uploadTime) {
-//        this.uploadTime = uploadTime;
-//    }
-//
-//    public String getRecipePictureUrl() {
-//        return recipePictureUrl;
-//    }
-//
-//    public void setRecipePictureUrl(String recipePictureUrl) {
-//        this.recipePictureUrl = recipePictureUrl;
-//    }
-//
-//    public HashSet<Review> getReviews() {
-//        return reviews;
-//    }
-//
-//    public void setReviews(HashSet<Review> reviews) {
-//        this.reviews = reviews;
-//    }
-//
-//    public HashSet<Integer> getRatings() { return ratings; }
-//
-//    public void setRatings(HashSet<Integer> ratings) { this.ratings = ratings; }
-//
-//    public int getRating() {
-//        return rating;
-//    }
-//    public void setRating(int rating) {
-//        this.rating = rating;
-//    }
+    public String getMealCategory() { return mealCategory; }  // Getter for meal category
+    public void setMealCategory(String mealCategory) { this.mealCategory = mealCategory; }  // Setter for meal category
 
     @Override
     public String toString() {
-        return "Id: " + recipeId + ", Title: " + title + ", Ingredients: " + ingredients + ", Cook Time: " + cookingTime + ", Description: " + description;
+        return "Recipe{" +
+                "id='" + recipeId + '\'' +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", ingredients=" + ingredients +
+                ", cookingTime=" + cookingTime +
+                ", userId='" + userId + '\'' +
+                ", timestamp=" + timestamp +
+                ", mealCategory='" + mealCategory + '\'' +
+                '}';
     }
 }
 
