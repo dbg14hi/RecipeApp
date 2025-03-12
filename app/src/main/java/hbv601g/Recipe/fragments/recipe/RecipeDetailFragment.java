@@ -40,12 +40,12 @@ import hbv601g.Recipe.repository.FirestoreRepository;
 
 public class RecipeDetailFragment extends Fragment {
 
-    private TextView titleTextView, descriptionTextView, ingredientsTextView, cookingTimeTextView;
+    private TextView titleTextView, descriptionTextView, ingredientsTextView, cookingTimeTextView, dietaryRestrictionsTextView, mealCategoriesTextView;
     private ImageButton favoriteButton;
 
     private ReviewAdapter reviewAdapter; //Arna
-
     private List<Review> reviewList; //Arna
+
     private FirestoreRepository repository;
     private String userId, recipeId;
     private boolean isFavorite = false;
@@ -67,6 +67,8 @@ public class RecipeDetailFragment extends Fragment {
         descriptionTextView = view.findViewById(R.id.recipe_description);
         ingredientsTextView = view.findViewById(R.id.recipe_ingredients);
         cookingTimeTextView = view.findViewById(R.id.recipe_cooking_time);
+        dietaryRestrictionsTextView = view.findViewById(R.id.recipe_dietary_restrictions);
+        mealCategoriesTextView = view.findViewById(R.id.recipe_meal_categories);
         favoriteButton = view.findViewById(R.id.favoriteButton);
         //Arna
         Button reviewButton; //Arna
@@ -90,7 +92,7 @@ public class RecipeDetailFragment extends Fragment {
                 return view;
             }
 
-            recipe = new Recipe(title, ingredients, description, cookingTime, userId);
+            recipe = new Recipe(title, ingredients, description, cookingTime, null, null, userId);
 
             titleTextView.setText(title);
             descriptionTextView.setText(description);
@@ -98,7 +100,6 @@ public class RecipeDetailFragment extends Fragment {
             cookingTimeTextView.setText("Cooking Time: " + cookingTime + " minutes");
 
             checkIfFavorite();
-
 
             favoriteButton.setOnClickListener(v -> toggleFavorite(userId, recipeId));
             reviewButton.setOnClickListener(v -> openReviewFragment());

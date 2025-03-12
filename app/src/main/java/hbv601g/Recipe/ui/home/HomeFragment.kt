@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -23,6 +25,7 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private lateinit var homeViewModel: HomeViewModel
+    private lateinit var searchView: SearchView
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: RecipeAdapter
     private lateinit var createRecipeFab: FloatingActionButton
@@ -38,9 +41,12 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
         homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
 
+        searchView = binding.recipeSearchView
+
         recyclerView = binding.recyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        // Make create recipe button
         createRecipeFab = binding.createRecipeFab
 
         if (FirebaseAuth.getInstance().currentUser != null) {
@@ -55,6 +61,26 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         // Initialize adapter and pass 'this' as the click listener
         adapter = RecipeAdapter(emptyList(), this)
         recyclerView.adapter = adapter
+
+        // Search for recipes and update view
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                homeViewModel.filterRecipes(newText.orEmpty())
+                return true
+            }
+        })
+
+        homeViewModel.filteredRecipesLiveData.observe(viewLifecycleOwner) { recipes ->
+            adapter.updateData(recipes)
+        }
+
+        homeViewModel.errorLiveData.observe(viewLifecycleOwner) { errorMessage ->
+            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+        }
 
         // Fetch recipes in real-time
         fetchRecipesInRealTime()
@@ -96,7 +122,6 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
                 adapter.updateData(recipeList)
             }
     }
-
 
     override fun onRecipeClick(recipe: Recipe) {
         val bundle = Bundle().apply {

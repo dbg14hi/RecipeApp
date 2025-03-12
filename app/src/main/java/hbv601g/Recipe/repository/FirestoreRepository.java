@@ -59,8 +59,10 @@ public class FirestoreRepository {
                     String recipeId = document.getId();
                     String title = document.getString("title");  // Fetch title (instead of name)
                     String description = document.getString("description");  // Fetch description
-                    Integer cookingTime = document.getLong("cookingTime") != null ? document.getLong("cookingTime").intValue() : 0;
+                    int cookingTime = document.getLong("cookingTime") != null ? document.getLong("cookingTime").intValue() : 0;
                     Object ingredientsObj = document.get("ingredients");
+                    Object dietaryRestrictionsObj = document.get("dietaryRestrictions");
+                    Object mealCategoriesObj = document.get("mealCategories");
 
                     List<String> ingredients = new ArrayList<>();
                     if (ingredientsObj instanceof String) {
@@ -69,12 +71,28 @@ public class FirestoreRepository {
                         ingredients = (List<String>) ingredientsObj;
                     }
 
+                    List<String> dietaryRestrictions = new ArrayList<>();
+                    if (dietaryRestrictionsObj instanceof String) {
+                        dietaryRestrictions = Arrays.asList(((String) dietaryRestrictionsObj).split(",\\s*"));
+                    } else if (dietaryRestrictionsObj instanceof List) {
+                        dietaryRestrictions = (List<String>) dietaryRestrictionsObj;
+                    }
+
+                    List<String> mealCategories = new ArrayList<>();
+                    if (mealCategoriesObj instanceof String) {
+                        mealCategories = Arrays.asList(((String) mealCategoriesObj).split(",\\s*"));
+                    } else if (mealCategoriesObj instanceof List) {
+                        mealCategories = (List<String>) mealCategoriesObj;
+                    }
+
                     Recipe recipe = new Recipe();
                     recipe.setRecipeId(recipeId);
                     recipe.setTitle(title);
                     recipe.setDescription(description);
                     recipe.setCookingTime(cookingTime);
                     recipe.setIngredients(ingredients);
+                    recipe.setDietaryRestrictions(dietaryRestrictions);
+                    recipe.setMealCategories(mealCategories);
 
                     recipes.add(recipe);
                 }
@@ -103,6 +121,8 @@ public class FirestoreRepository {
         favoriteData.put("description", recipe.getDescription());
         favoriteData.put("cookingTime", recipe.getCookingTime());
         favoriteData.put("ingredients", recipe.getIngredients());
+        favoriteData.put("dietaryRestrictions", recipe.getDietaryRestrictions());
+        favoriteData.put("mealCategories", recipe.getMealCategories());
 
         usersCollection.document(userId)
                 .collection("favorites")
@@ -113,7 +133,6 @@ public class FirestoreRepository {
                 .addOnFailureListener(e ->
                         Log.e("FirestoreRepository", "Error adding recipe to favorites: " + e.getMessage()));
     }
-
 
     public void removeRecipeFromFavorites(String userId, String recipeId) {
         if (userId == null || userId.isEmpty() || recipeId == null || recipeId.isEmpty()) {
