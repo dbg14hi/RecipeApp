@@ -29,10 +29,14 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var searchView: SearchView
     private lateinit var dietaryRestrictionsLayout: LinearLayout
+    private lateinit var mealCategoriesLayout: LinearLayout
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: RecipeAdapter
     private lateinit var createRecipeFab: FloatingActionButton
     private val db = FirebaseFirestore.getInstance()
+
+    var selectedDietaryRestrictions = mutableListOf<String>()
+    var selectedMealCategories = mutableListOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,6 +50,7 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
         searchView = binding.recipeSearchView
         dietaryRestrictionsLayout = binding.dietaryRestrictionsLayout
+        mealCategoriesLayout = binding.mealCategoriesLayout
 
         recyclerView = binding.recyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -66,18 +71,25 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         adapter = RecipeAdapter(emptyList(), this)
         recyclerView.adapter = adapter
 
-
-
-        // Add category checkboxes and get those that are checked
-        val categories = listOf("Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free", "Nut-free") // Example categories
-        var selected = mutableListOf<String>()
-        categories.forEach { category ->
+        // Add category checkboxes and add listener
+        val dietaryRestrictions = listOf("Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free", "Nut-free")
+        dietaryRestrictions.forEach { category ->
             val checkBox = CheckBox(context)
             checkBox.text = category
             checkBox.setOnCheckedChangeListener { _, isChecked ->
-                selected = updateSelectedCategories()
+                updateSelectedCategories()
             }
             dietaryRestrictionsLayout.addView(checkBox)
+        }
+
+        val mealCategories = listOf("Breakfast", "Lunch", "Snack", "Dinner")
+        mealCategories.forEach { category ->
+            val checkBox = CheckBox(context)
+            checkBox.text = category
+            checkBox.setOnCheckedChangeListener { _, isChecked ->
+                updateSelectedCategories()
+            }
+            mealCategoriesLayout.addView(checkBox)
         }
 
         // Search for recipes and update view
@@ -87,7 +99,10 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                homeViewModel.filterRecipes(newText.orEmpty(), selected)
+
+                val selectedDietaryRestrictions = homeViewModel.selectedDietaryRestrictions.value ?: emptyList()
+                val selectedMealCategories = homeViewModel.selectedMealCategories.value ?: emptyList()
+                homeViewModel.filterRecipes(newText.orEmpty(), selectedDietaryRestrictions, selectedMealCategories)
                 return true
             }
         })
@@ -160,15 +175,22 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         navController.navigate(R.id.action_navigation_home_to_recipeDetailFragment, bundle)
     }
 
-    private fun updateSelectedCategories(): MutableList<String> {
-        val selected = mutableListOf<String>()
+    private fun updateSelectedCategories() {
+        val dietaryRestrictions = mutableListOf<String>()
         for (i in 0 until dietaryRestrictionsLayout.childCount) {
             val checkBox = dietaryRestrictionsLayout.getChildAt(i) as CheckBox
             if (checkBox.isChecked) {
-                selected.add(checkBox.text.toString())
+                dietaryRestrictions.add(checkBox.text.toString())
             }
         }
-        homeViewModel.setSelectedCategories(selected)
-        return selected
+
+        val mealCategories = mutableListOf<String>()
+        for (i in 0 until mealCategoriesLayout.childCount) {
+            val checkBox = mealCategoriesLayout.getChildAt(i) as CheckBox
+            if (checkBox.isChecked) {
+                mealCategories.add(checkBox.text.toString())
+            }
+        }
+        homeViewModel.setSelectedCategories(dietaryRestrictions, mealCategories)
     }
 }
