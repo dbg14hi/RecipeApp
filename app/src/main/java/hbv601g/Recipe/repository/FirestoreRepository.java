@@ -266,6 +266,11 @@ public class FirestoreRepository {
                         System.err.println("Error deleting review: " + e.getMessage()));
     }
 
+    // ================
+    // Filter OPERATIONS
+    // ================
+
+    //skoða betur, ekki búið
     public void getFilteredRecipes(@NotNull String title, int cookingTime, @NotNull FirestoreRepository.RecipeCallback callback) {
         Query query = db.collection("recipes");
 
