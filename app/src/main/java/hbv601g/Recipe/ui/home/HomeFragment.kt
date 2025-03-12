@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -26,6 +28,7 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     private val binding get() = _binding!!
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var searchView: SearchView
+    private lateinit var dietaryRestrictionsLayout: LinearLayout
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: RecipeAdapter
     private lateinit var createRecipeFab: FloatingActionButton
@@ -42,6 +45,7 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
 
         searchView = binding.recipeSearchView
+        dietaryRestrictionsLayout = binding.dietaryRestrictionsLayout
 
         recyclerView = binding.recyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -62,6 +66,20 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         adapter = RecipeAdapter(emptyList(), this)
         recyclerView.adapter = adapter
 
+
+
+        // Add category checkboxes and get those that are checked
+        val categories = listOf("Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free", "Nut-free") // Example categories
+        var selected = mutableListOf<String>()
+        categories.forEach { category ->
+            val checkBox = CheckBox(context)
+            checkBox.text = category
+            checkBox.setOnCheckedChangeListener { _, isChecked ->
+                selected = updateSelectedCategories()
+            }
+            dietaryRestrictionsLayout.addView(checkBox)
+        }
+
         // Search for recipes and update view
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -69,7 +87,7 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                homeViewModel.filterRecipes(newText.orEmpty())
+                homeViewModel.filterRecipes(newText.orEmpty(), selected)
                 return true
             }
         })
@@ -140,5 +158,17 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         }
 
         navController.navigate(R.id.action_navigation_home_to_recipeDetailFragment, bundle)
+    }
+
+    private fun updateSelectedCategories(): MutableList<String> {
+        val selected = mutableListOf<String>()
+        for (i in 0 until dietaryRestrictionsLayout.childCount) {
+            val checkBox = dietaryRestrictionsLayout.getChildAt(i) as CheckBox
+            if (checkBox.isChecked) {
+                selected.add(checkBox.text.toString())
+            }
+        }
+        homeViewModel.setSelectedCategories(selected)
+        return selected
     }
 }

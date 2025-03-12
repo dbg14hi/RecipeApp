@@ -16,6 +16,9 @@ class HomeViewModel : ViewModel() {
     private val _filteredRecipesLiveData = MutableLiveData<List<Recipe>>()
     val filteredRecipesLiveData: LiveData<List<Recipe>> = _filteredRecipesLiveData
 
+    private val _selectedCategories = MutableLiveData<List<String>>(emptyList())
+    val selectedCategories: LiveData<List<String>> = _selectedCategories
+
     private val _errorLiveData = MutableLiveData<String>()
     val errorLiveData: LiveData<String> = _errorLiveData
 
@@ -39,14 +42,27 @@ class HomeViewModel : ViewModel() {
         })
     }
 
-    fun filterRecipes(query: String) {
+    fun filterRecipes(query: String, selectedCategories: List<String>) {
         _searchQuery.value = query;
         val recipes = _recipesLiveData.value ?: emptyList()
         val filtered = recipes.filter { recipe ->
-            recipe.title.contains(query, ignoreCase = true) ||
+            val keywordMatch = query.isEmpty() ||
+                    recipe.title.contains(query, ignoreCase = true) ||
                     recipe.description.contains(query, ignoreCase = true) ||
                     recipe.ingredients.any { it.contains(query, ignoreCase = true) }
+
+            val categoryMatch = selectedCategories.isEmpty() ||
+                    selectedCategories.all { selectedCategory ->
+                        recipe.dietaryRestrictions.contains(selectedCategory)
+                    }
+
+            keywordMatch && categoryMatch
         }
         _filteredRecipesLiveData.postValue(filtered)
+    }
+
+    fun setSelectedCategories(categories: List<String>) {
+        _selectedCategories.value = categories
+        filterRecipes(_searchQuery.value.orEmpty(), _selectedCategories.value.orEmpty())
     }
 }
