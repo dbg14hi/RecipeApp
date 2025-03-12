@@ -1,5 +1,6 @@
 package hbv601g.Recipe.entities;
 
+import com.google.firebase.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
@@ -10,15 +11,19 @@ public class Recipe {
     private List<String> ingredients;
     private int cookingTime;
     private String userId;
+    private Timestamp timestamp;  // Add timestamp field
+    private String mealCategory;  // Add meal category field
 
     public Recipe() {}
 
-    public Recipe(String title, Object ingredients, String description, int cookingTime, String userId) {
+    public Recipe(String title, Object ingredients, String description, int cookingTime, String userId, Timestamp timestamp, String mealCategory) {
         this.title = title;
         setIngredients(ingredients);
         this.description = description;
         this.cookingTime = cookingTime;
         this.userId = userId;
+        this.timestamp = timestamp;
+        this.mealCategory = mealCategory;
     }
 
     public String getRecipeId() { return recipeId; }
@@ -47,6 +52,12 @@ public class Recipe {
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
 
+    public Timestamp getTimestamp() { return timestamp; }  // Getter for timestamp
+    public void setTimestamp(Timestamp timestamp) { this.timestamp = timestamp; }  // Setter for timestamp
+
+    public String getMealCategory() { return mealCategory; }  // Getter for meal category
+    public void setMealCategory(String mealCategory) { this.mealCategory = mealCategory; }  // Setter for meal category
+
     @Override
     public String toString() {
         return "Recipe{" +
@@ -56,6 +67,9 @@ public class Recipe {
                 ", ingredients=" + ingredients +
                 ", cookingTime=" + cookingTime +
                 ", userId='" + userId + '\'' +
+                ", timestamp=" + timestamp +
+                ", mealCategory='" + mealCategory + '\'' +
                 '}';
     }
 }
+

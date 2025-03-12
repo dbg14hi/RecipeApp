@@ -2,6 +2,7 @@ package hbv601g.Recipe.repository;
 
 import android.util.Log;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -57,10 +58,12 @@ public class FirestoreRepository {
                     System.out.println("📄 Document data: " + document.getData());
 
                     String recipeId = document.getId();
-                    String title = document.getString("title");  // Fetch title (instead of name)
-                    String description = document.getString("description");  // Fetch description
+                    String title = document.getString("title");
+                    String description = document.getString("description");
                     Integer cookingTime = document.getLong("cookingTime") != null ? document.getLong("cookingTime").intValue() : 0;
                     Object ingredientsObj = document.get("ingredients");
+                    String mealCategory = document.getString("mealCategory");  // Get meal category
+                    Timestamp timestamp = document.getTimestamp("timestamp"); // Get timestamp
 
                     List<String> ingredients = new ArrayList<>();
                     if (ingredientsObj instanceof String) {
@@ -75,6 +78,8 @@ public class FirestoreRepository {
                     recipe.setDescription(description);
                     recipe.setCookingTime(cookingTime);
                     recipe.setIngredients(ingredients);
+                    recipe.setMealCategory(mealCategory);  // Set meal category
+                    recipe.setTimestamp(timestamp);  // Set timestamp
 
                     recipes.add(recipe);
                 }
@@ -86,6 +91,8 @@ public class FirestoreRepository {
             }
         });
     }
+
+
 
     // ================
     // FAVORITES OPERATIONS

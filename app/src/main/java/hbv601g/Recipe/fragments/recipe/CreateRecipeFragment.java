@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
@@ -33,6 +34,7 @@ public class CreateRecipeFragment extends Fragment {
     private FirebaseFirestore db;
     private EditText titleInput, descriptionInput, ingredientsInput, cookingTimeInput;
     private Button submitRecipeButton;
+    private Spinner mealCategorySpinner;
 
     @Nullable
     @Override
@@ -51,6 +53,7 @@ public class CreateRecipeFragment extends Fragment {
         ingredientsInput = view.findViewById(R.id.ingredientsInput);
         cookingTimeInput = view.findViewById(R.id.cookingTimeInput);
         submitRecipeButton = view.findViewById(R.id.submitRecipeButton);
+        mealCategorySpinner = view.findViewById(R.id.mealCategorySpinner);
 
         submitRecipeButton.setOnClickListener(v -> createRecipe());
 
@@ -72,6 +75,7 @@ public class CreateRecipeFragment extends Fragment {
         String description = descriptionInput.getText().toString().trim();
         String ingredientsText = ingredientsInput.getText().toString().trim();
         String cookingTimeStr = cookingTimeInput.getText().toString().trim();
+        String mealCategory = mealCategorySpinner.getSelectedItem().toString();
 
         if (title.isEmpty() || description.isEmpty() || ingredientsText.isEmpty() || cookingTimeStr.isEmpty()) {
             Toast.makeText(getContext(), "All fields are required!", Toast.LENGTH_SHORT).show();
@@ -99,6 +103,7 @@ public class CreateRecipeFragment extends Fragment {
         recipe.put("cookingTime", cookingTime);
         recipe.put("userId", userId);
         recipe.put("timestamp", FieldValue.serverTimestamp());
+        recipe.put("mealCategory", mealCategory);
 
         db.collection("recipes").add(recipe)
                 .addOnSuccessListener(documentReference -> {
