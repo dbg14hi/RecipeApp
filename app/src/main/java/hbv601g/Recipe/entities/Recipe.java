@@ -1,6 +1,7 @@
 package hbv601g.Recipe.entities;
 
 import java.util.ArrayList;
+import com.google.firebase.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,11 +13,13 @@ public class Recipe {
     private int cookingTime;
     private List<String> dietaryRestrictions;
     private List<String> mealCategories;
+    private Timestamp timestamp;  // Add timestamp field
     private String userId;
+
 
     public Recipe() {}
 
-    public Recipe(String title, Object ingredients, String description, int cookingTime, Object dietaryRestrictions, Object mealCategories, String userId) {
+    public Recipe(String title, Object ingredients, String description, int cookingTime, Object dietaryRestrictions, Object mealCategories, Timestamp timestamp, String userId) {
         this.title = title;
         setIngredients(ingredients);
         this.description = description;
@@ -86,6 +89,9 @@ public class Recipe {
         }
     }
 
+    public Timestamp getTimestamp() { return timestamp; }  // Getter for timestamp
+    public void setTimestamp(Timestamp timestamp) { this.timestamp = timestamp; }  // Setter for timestamp
+
     @Override
     public String toString() {
         return "Recipe{" +
@@ -96,8 +102,8 @@ public class Recipe {
                 ", cookingTime=" + cookingTime +
                 ", dietaryRestrictions=" + dietaryRestrictions +
                 ", mealCategories=" + mealCategories +
+                ", timestamp=" + timestamp +
                 ", userId='" + userId + '\'' +
                 '}';
     }
-
 }

@@ -92,7 +92,7 @@ public class RecipeDetailFragment extends Fragment {
                 return view;
             }
 
-            recipe = new Recipe(title, ingredients, description, cookingTime, null, null, userId);
+            recipe = new Recipe(title, ingredients, description, cookingTime, null, null, null, userId);
 
             titleTextView.setText(title);
             descriptionTextView.setText(description);

@@ -33,8 +33,8 @@ public class ProfileFragment extends Fragment {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private TextView usernameText, emailText, noFavoritesText;
-    private Button loginButton, registerButton, logoutButton, updateUsernameButton;
-    private EditText newUsernameField;
+    private Button loginButton, registerButton, logoutButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
+    private EditText newUsernameField, newEmailField, newPasswordField;
     private UserService userService;
 
     private RecyclerView favoritesRecyclerView;
@@ -65,6 +65,11 @@ public class ProfileFragment extends Fragment {
         logoutButton = view.findViewById(R.id.logoutButton);
         newUsernameField = view.findViewById(R.id.newUsernameField);
         updateUsernameButton = view.findViewById(R.id.updateUsernameButton);
+//        newEmailField = view.findViewById(R.id.newEmailField);
+//        updateEmailButton = view.findViewById(R.id.updateEmailButton);
+//        newPasswordField = view.findViewById(R.id.newPasswordField);
+//        updatePasswordButton = view.findViewById(R.id.updatePasswordButton);
+
 
         // 🔹 Initialize RecyclerView for Favorites
         favoritesRecyclerView = view.findViewById(R.id.favoritesRecyclerView);

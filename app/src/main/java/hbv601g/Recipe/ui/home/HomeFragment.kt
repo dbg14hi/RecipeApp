@@ -9,7 +9,10 @@ import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
-import androidx.fragment.app.Fragment
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+    import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -115,6 +118,9 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
         }
 
+        // Setup sorting dropdown
+        setupSortingDropdown()
+
         // Fetch recipes in real-time
         fetchRecipesInRealTime()
 
@@ -124,6 +130,21 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun setupSortingDropdown() {
+        val sortingOptions = arrayOf("Name", "Date Added")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, sortingOptions)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        binding.sortSpinner.adapter = adapter
+        binding.sortSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedSort = sortingOptions[position]
+                homeViewModel.sortRecipes(selectedSort)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
     }
 
     private fun fetchRecipesInRealTime() {

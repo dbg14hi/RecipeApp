@@ -48,6 +48,14 @@
         android:background="@android:color/white"
         android:layout_marginTop="8dp"/>
 
+    <Spinner
+        android:id="@+id/mealCategorySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:entries="@array/meal_categories" />
+
+
     <!-- Submit Recipe Button -->
 
     <LinearLayout

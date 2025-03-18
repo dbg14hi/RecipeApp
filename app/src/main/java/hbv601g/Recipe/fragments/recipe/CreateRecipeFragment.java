@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.CheckBox;
 
@@ -135,8 +136,8 @@ public class CreateRecipeFragment extends Fragment {
         recipe.put("cookingTime", cookingTime);
         recipe.put("dietaryRestrictions", selectedDietaryRestrictions);
         recipe.put("mealCategories", selectedMealCategories);
-        recipe.put("userId", userId);
         recipe.put("timestamp", FieldValue.serverTimestamp());
+        recipe.put("userId", userId);
 
         db.collection("recipes").add(recipe)
                 .addOnSuccessListener(documentReference -> {

@@ -2,6 +2,7 @@ package hbv601g.Recipe.repository;
 
 import android.util.Log;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -63,6 +64,7 @@ public class FirestoreRepository {
                     Object ingredientsObj = document.get("ingredients");
                     Object dietaryRestrictionsObj = document.get("dietaryRestrictions");
                     Object mealCategoriesObj = document.get("mealCategories");
+                    Timestamp timestamp = document.getTimestamp("timestamp"); // Get timestamp
 
                     List<String> ingredients = new ArrayList<>();
                     if (ingredientsObj instanceof String) {
@@ -93,6 +95,7 @@ public class FirestoreRepository {
                     recipe.setIngredients(ingredients);
                     recipe.setDietaryRestrictions(dietaryRestrictions);
                     recipe.setMealCategories(mealCategories);
+                    recipe.setTimestamp(timestamp);  // Set timestamp
 
                     recipes.add(recipe);
                 }

@@ -70,6 +70,16 @@ class HomeViewModel : ViewModel() {
         _filteredRecipesLiveData.postValue(filtered)
     }
 
+    fun sortRecipes(option: String) {
+        val recipes = _filteredRecipesLiveData.value ?: emptyList()
+        val sortedList = when (option) {
+            "Name" -> recipes.sortedBy { it.title }
+            "Date Added" -> recipes.sortedByDescending { it.timestamp }
+            else -> recipes
+        }
+        _filteredRecipesLiveData.postValue(sortedList)
+    }
+
     fun setSelectedCategories(dietaryRestrictions: List<String>, mealCategories: List<String>) {
         _selectedDietaryRestrictions.value = dietaryRestrictions
         _selectedMealCategories.value = mealCategories
