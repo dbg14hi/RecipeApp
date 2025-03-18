@@ -40,8 +40,6 @@ public class ProfileFragment extends Fragment {
     private TextView usernameText, emailText, noFavoritesText;
     private Button loginButton, registerButton, logoutButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
     private EditText newUsernameField, newEmailText, newPasswordText;
-    private Button loginButton, registerButton, logoutButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
-    private EditText newUsernameField, newEmailField, newPasswordField;
     private UserService userService;
 
     private LoginFragment loginFragment; //skoða

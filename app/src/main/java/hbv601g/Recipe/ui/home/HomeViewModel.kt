@@ -33,22 +33,4 @@ class HomeViewModel : ViewModel() {
             }
         })
     }
-
-    fun sortRecipes(option: String) {
-        val sortedList = when (option) {
-            "Name" -> allRecipes.sortedBy { it.title }
-            "Date Added" -> allRecipes.sortedByDescending { it.timestamp }
-            else -> allRecipes
-        }
-        _recipesLiveData.postValue(sortedList)
-    }
-
-    fun filterRecipes(category: String) {
-        val filteredList = if (category == "All") {
-            allRecipes
-        } else {
-            allRecipes.filter { it.mealCategory == category }
-        }
-        _recipesLiveData.postValue(filteredList)
-    }
 }

@@ -79,9 +79,6 @@ public class FirestoreRepository {
                     recipe.setDescription(description);
                     recipe.setCookingTime(cookingTime);
                     recipe.setIngredients(ingredients);
-                    recipe.setMealCategory(mealCategory);  // Set meal category
-                    recipe.setTimestamp(timestamp);  // Set timestamp
-
                     recipes.add(recipe);
                 }
                 System.out.println("Loaded " + recipes.size() + " recipes");

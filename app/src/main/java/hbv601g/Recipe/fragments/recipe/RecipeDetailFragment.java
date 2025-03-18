@@ -11,19 +11,25 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.entities.Recipe;
@@ -128,7 +134,7 @@ public class RecipeDetailFragment extends Fragment {
     }
 
 
-    private void toggleFavorite(String userId, String recipeId) {
+    private void toggleFavorite() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference userRef = db.collection("users").document(userId);
 
