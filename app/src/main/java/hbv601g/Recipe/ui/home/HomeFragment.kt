@@ -5,10 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -55,17 +52,11 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             createRecipeFab.visibility = View.GONE
         }
 
-        // Initialize adapter and pass 'this' as the click listener
         adapter = RecipeAdapter(emptyList(), this)
         recyclerView.adapter = adapter
 
-        setupSortingDropdown()
-        setupFilteringDropdown()
-
-        // Observe recipe list changes
-        homeViewModel.recipesLiveData.observe(viewLifecycleOwner, Observer { recipes ->
-            adapter.updateData(recipes)
-        })
+        // Fetch recipes in real-time
+        fetchRecipesInRealTime()
 
         return root
     }
@@ -75,35 +66,36 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         _binding = null
     }
 
-    private fun setupSortingDropdown() {
-        val sortingOptions = arrayOf("Name", "Date Added")
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, sortingOptions)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+    private fun fetchRecipesInRealTime() {
+        db.collection("recipes")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener { querySnapshot, error ->
+                if (error != null) {
+                    Log.e("HomeFragment", "Error loading recipes: ", error)
+                    return@addSnapshotListener
+                }
 
-        binding.sortSpinner.adapter = adapter
-        binding.sortSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedSort = sortingOptions[position]
-                homeViewModel.sortRecipes(selectedSort)
+                if (querySnapshot == null || querySnapshot.isEmpty) {
+                    Log.d("HomeFragment", "No recipes found in Firestore.")
+                    return@addSnapshotListener
+                }
+
+                val recipeList = mutableListOf<Recipe>()
+                for (document in querySnapshot.documents) {
+                    val recipe = document.toObject(Recipe::class.java)
+                    if (recipe != null) {
+                        recipe.recipeId = document.id
+                        recipeList.add(recipe)
+                    } else {
+                        Log.e("HomeFragment", "Error parsing recipe: ${document.id}")
+                    }
+                }
+
+                Log.d("HomeFragment", "Loaded ${recipeList.size} recipes")
+                adapter.updateData(recipeList)
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
     }
 
-    private fun setupFilteringDropdown() {
-        val filterOptions = arrayOf("All", "Breakfast", "Lunch", "Dinner")
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, filterOptions)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
-        binding.filterSpinner.adapter = adapter
-        binding.filterSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedFilter = filterOptions[position]
-                homeViewModel.filterRecipes(selectedFilter)
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-    }
 
     override fun onRecipeClick(recipe: Recipe) {
         val bundle = Bundle().apply {
@@ -116,7 +108,6 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
         val navController = findNavController()
 
-        // Ensure we are not already in RecipeDetailFragment to prevent crashes
         if (navController.currentDestination?.id == R.id.recipeDetailFragment) {
             return
         }

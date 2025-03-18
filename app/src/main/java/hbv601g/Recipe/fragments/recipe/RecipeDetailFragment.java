@@ -17,19 +17,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.entities.Recipe;
@@ -90,8 +84,7 @@ public class RecipeDetailFragment extends Fragment {
                 return view;
             }
 
-            recipe = new Recipe(title, ingredients, description, cookingTime, userId, null, null);
-
+            recipe = new Recipe(title, ingredients, description, cookingTime, userId);
 
             titleTextView.setText(title);
             descriptionTextView.setText(description);
@@ -100,8 +93,7 @@ public class RecipeDetailFragment extends Fragment {
 
             checkIfFavorite();
 
-
-            favoriteButton.setOnClickListener(v -> toggleFavorite(userId, recipeId));
+            favoriteButton.setOnClickListener(v -> toggleFavorite());
             reviewButton.setOnClickListener(v -> openReviewFragment());
 
             fetchReviews();
@@ -236,6 +228,8 @@ public class RecipeDetailFragment extends Fragment {
         }
     }
 }
+
+
 
 
 
