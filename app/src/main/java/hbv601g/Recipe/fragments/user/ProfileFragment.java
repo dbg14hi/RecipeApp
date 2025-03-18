@@ -8,6 +8,8 @@ import hbv601g.Recipe.ui.home.FavoritesAdapter;
 import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.repository.FirestoreRepository;
 
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +23,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -31,10 +36,12 @@ public class ProfileFragment extends Fragment {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private TextView usernameText, emailText, noFavoritesText;
-    private Button loginButton, registerButton, logoutButton, updateUsernameButton;
-    private EditText newUsernameField;
+    private TextView usernameText, emailText, noFavoritesText, passwordText;
+    private Button loginButton, registerButton, logoutButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
+    private EditText newUsernameField, newEmailText, newPasswordText;
     private UserService userService;
+
+    private LoginFragment loginFragment; //skoða
 
     private RecyclerView favoritesRecyclerView;
     private FavoritesAdapter favoritesAdapter;
@@ -45,6 +52,7 @@ public class ProfileFragment extends Fragment {
         // Required empty public constructor
     }
 
+    @SuppressLint("MissingInflatedId")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -64,6 +72,16 @@ public class ProfileFragment extends Fragment {
         logoutButton = view.findViewById(R.id.logoutButton);
         newUsernameField = view.findViewById(R.id.newUsernameField);
         updateUsernameButton = view.findViewById(R.id.updateUsernameButton);
+        newEmailText = view.findViewById(R.id.newEmailText);
+        updateEmailButton = view.findViewById(R.id.updateEmailButton);
+        passwordText = view.findViewById(R.id.newPasswordText);
+        newPasswordText = view.findViewById(R.id.newPasswordText);
+        updatePasswordButton = view.findViewById(R.id.updatePasswordButton);
+
+
+        //
+        updateEmailButton.setOnClickListener(v -> updateEmail());
+        updatePasswordButton.setOnClickListener(v -> updatePassword());
 
         // 🔹 Initialize RecyclerView for Favorites
         favoritesRecyclerView = view.findViewById(R.id.favoritesRecyclerView);
@@ -114,6 +132,112 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    private void updateEmail() {
+        FirebaseUser user = auth.getCurrentUser();
+        String newEmail = newEmailText.getText().toString().trim();
+        String currentPassword = "USER_CURRENT_PASSWORD";
+
+        if (user == null || newEmail.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter a valid email", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        EditText passwordInput = new EditText(requireContext());
+        passwordInput.setHint("Enter current password");
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Re-authentication Required")
+                .setMessage("Please enter your current password to proceed.")
+                .setView(passwordInput)
+                .setPositiveButton("Confirm", (dialog, which) -> {
+                    String password = passwordInput.getText().toString().trim();
+                    if (password.isEmpty()) {
+                        Toast.makeText(requireContext(), "Password cannot be empty", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
+
+                    user.reauthenticate(credential).addOnCompleteListener(authTask -> {
+                        if (authTask.isSuccessful()) {
+
+                            user.updateEmail(newEmail)
+                                    .addOnCompleteListener(task -> {
+                                        if (task.isSuccessful()) {
+                                            Log.d("ProfileUpdate", "Email updated to: " + newEmail);
+
+                                            db.collection("users").document(user.getUid())
+                                                    .update("email", newEmail)
+                                                    .addOnSuccessListener(aVoid ->
+                                                            Toast.makeText(requireContext(), "Email updated successfully!", Toast.LENGTH_SHORT).show())
+                                                    .addOnFailureListener(e ->
+                                                            Log.e("Firestore", "Error updating Firestore email", e));
+
+                                        } else {
+                                            Toast.makeText(requireContext(), "Failed to update email: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                                            Log.e("ProfileUpdate", "Error updating email", task.getException());
+                                        }
+                                    });
+                        } else {
+                            Toast.makeText(requireContext(), "Re-authentication failed: " + authTask.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            Log.e("AuthError", "Re-authentication failed", authTask.getException());
+                        }
+                    });
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+    private void updatePassword() {
+        FirebaseUser user = auth.getCurrentUser();
+        String newPassword = newPasswordText.getText().toString().trim();
+
+        if (user == null || newPassword.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter a valid password", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        EditText passwordInput = new EditText(requireContext());
+        passwordInput.setHint("Enter current password");
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Re-authentication Required")
+                .setMessage("Please enter your current password to proceed.")
+                .setView(passwordInput)
+                .setPositiveButton("Confirm", (dialog, which) -> {
+                    String currentPassword = passwordInput.getText().toString().trim();
+                    if (currentPassword.isEmpty()) {
+                        Toast.makeText(requireContext(), "Current password cannot be empty", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPassword);
+
+                    user.reauthenticate(credential).addOnCompleteListener(authTask -> {
+                        if (authTask.isSuccessful()) {
+                            user.updatePassword(newPassword)
+                                    .addOnCompleteListener(task -> {
+                                        if (task.isSuccessful()) {
+                                            Log.d("ProfileUpdate", "Password updated successfully");
+
+                                            Toast.makeText(requireContext(), "Password updated successfully!", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(requireContext(), "Failed to update password: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                                            Log.e("ProfileUpdate", "Error updating password", task.getException());
+                                        }
+                                    });
+                        } else {
+                            Toast.makeText(requireContext(), "Re-authentication failed: " + authTask.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            Log.e("AuthError", "Re-authentication failed", authTask.getException());
+                        }
+                    });
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
+
+
     // 🔹 Update UI based on login state
     private void updateUI() {
         FirebaseUser user = auth.getCurrentUser();
@@ -139,6 +263,10 @@ public class ProfileFragment extends Fragment {
             logoutButton.setVisibility(View.VISIBLE);
             newUsernameField.setVisibility(View.VISIBLE);
             updateUsernameButton.setVisibility(View.VISIBLE);
+            newEmailText.setVisibility(View.VISIBLE);
+            updateEmailButton.setVisibility(View.VISIBLE);
+            newPasswordText.setVisibility(View.VISIBLE);
+            updatePasswordButton.setVisibility(View.VISIBLE);
         } else {
             // 🔹 Hide favorites when logged out
             favoritesRecyclerView.setVisibility(View.GONE);
@@ -151,6 +279,10 @@ public class ProfileFragment extends Fragment {
             logoutButton.setVisibility(View.GONE);
             newUsernameField.setVisibility(View.GONE);
             updateUsernameButton.setVisibility(View.GONE);
+            newEmailText.setVisibility(View.GONE);
+            updateEmailButton.setVisibility(View.GONE);
+            newPasswordText.setVisibility(View.GONE);
+            updatePasswordButton.setVisibility(View.GONE);
         }
     }
 

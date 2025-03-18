@@ -30,19 +30,5 @@ class HomeViewModel : ViewModel() {
                 _errorLiveData.postValue("Failed to load recipes: ${e.message}")
             }
         })
-
-//Þarf að skoða þetta betur, filterinn
-        fun filterRecipes(title: String, cookingTime: Int) {
-            repository.getFilteredRecipes(title, cookingTime, object : FirestoreRepository.RecipeCallback {
-                override fun onRecipesLoaded(recipes: List<Recipe>) {
-                    _recipesLiveData.postValue(recipes)
-                }
-
-                override fun onFailure(e: Exception) {
-                    _errorLiveData.postValue("Failed to load filtered recipes: ${e.message}")
-                }
-            })
-        }
     }
-
 }
