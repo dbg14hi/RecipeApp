@@ -36,7 +36,7 @@ public class ProfileFragment extends Fragment {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private TextView usernameText, emailText, noFavoritesText, passwordText;
+    private TextView usernameText, emailText, noFavoritesText;
     private Button loginButton, registerButton, logoutButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
     private EditText newUsernameField, newEmailText, newPasswordText;
     private UserService userService;
@@ -49,7 +49,6 @@ public class ProfileFragment extends Fragment {
     private FirestoreRepository firestoreRepository;
 
     public ProfileFragment() {
-        // Required empty public constructor
     }
 
     @SuppressLint("MissingInflatedId")
@@ -74,7 +73,6 @@ public class ProfileFragment extends Fragment {
         updateUsernameButton = view.findViewById(R.id.updateUsernameButton);
         newEmailText = view.findViewById(R.id.newEmailText);
         updateEmailButton = view.findViewById(R.id.updateEmailButton);
-        passwordText = view.findViewById(R.id.newPasswordText);
         newPasswordText = view.findViewById(R.id.newPasswordText);
         updatePasswordButton = view.findViewById(R.id.updatePasswordButton);
 
