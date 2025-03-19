@@ -1,31 +1,38 @@
 package hbv601g.Recipe.entities;
 
+import com.google.firebase.firestore.DocumentId;
+import com.google.firebase.firestore.PropertyName;
+
+
+
 public class Review {
-    private long id;
+    @DocumentId
+    private String id; // Use String for Firestore document ID
     private String comment;
     private Integer rating;
-    private User user;
-    private Recipe recipe;
-    private Review review;
+    private String userId;
+    private String recipeId;
+    private String parentReviewId;
 
-    /* Constructors */
+    // Default constructor required for Firestore
     public Review() {
     }
 
-    public Review(String comment, Integer rating, User user, Recipe recipe, Review review) {
+    // Constructor with parameters
+    public Review(String comment, Integer rating, String userId, String recipeId, String parentReviewId) {
         this.comment = comment;
         this.rating = rating;
-        this.user = user;
-        this.recipe = recipe;
-        this.review = review;
+        this.userId = userId;
+        this.recipeId = recipeId;
+        this.parentReviewId = parentReviewId;
     }
 
-    /* Getters and setters */
-    public Long getId() {
+    // Getters and setters //
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -37,22 +44,6 @@ public class Review {
         this.comment = comment;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Recipe getRecipe() {
-        return recipe;
-    }
-
-    public void setRecipe(Recipe recipe) {
-        this.recipe = recipe;
-    }
-
     public Integer getRating() {
         return rating;
     }
@@ -61,12 +52,27 @@ public class Review {
         this.rating = rating;
     }
 
-    public Review getReview(long id) {
-        return review;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setReview(Review review) {
-        this.review = review;
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getRecipeId() {
+        return recipeId;
+    }
+
+    public void setRecipeId(String recipeId) {
+        this.recipeId = recipeId;
+    }
+
+    public String getParentReviewId() {
+        return parentReviewId;
+    }
+
+    public void setParentReviewId(String parentReviewId) {
+        this.parentReviewId = parentReviewId;
     }
 }
-

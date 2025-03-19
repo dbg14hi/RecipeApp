@@ -18,6 +18,5 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Ingredients"
-        android:textSize="14sp"
-        android:textColor="#666666" />
+        android:textSize="14sp" />
 </LinearLayout>

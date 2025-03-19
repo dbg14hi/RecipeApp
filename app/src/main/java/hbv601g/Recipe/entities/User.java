@@ -11,7 +11,7 @@ public class User {
     private String password;
     private String userPicture;
     private HashSet<Long> userRecipes;
-    private HashSet<Long> userFavourites;
+    private ArrayList<Long> userFavourites;
 
     /* Constructor without arguments */
     public User() {
@@ -21,7 +21,7 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
-        userFavourites = new HashSet<>();
+        userFavourites = new ArrayList<>();
         userRecipes = new HashSet<>();
     }
 
@@ -74,20 +74,21 @@ public class User {
         this.userRecipes = userRecipes;
     }
 
-    public HashSet<Long> getUserFavourites() {
-        if (userFavourites == null) {
-            userFavourites = new HashSet<>();
+    public List<Long> getUserFavoritesList() {
+        if(userFavourites == null) {
+            userFavourites = new ArrayList<>();
         }
         return userFavourites;
     }
 
-    public void setUserFavourites(HashSet<Long> userFavourites) {
+
+    public void setUserFavourites(ArrayList<Long> userFavourites) {
         this.userFavourites = userFavourites;
     }
 
     public void addToUserFavourites(Long recipeId) {
         if(userFavourites == null) {
-            userFavourites = new HashSet<>();
+            userFavourites = new ArrayList<>();
         }
         userFavourites.add(recipeId);
     }

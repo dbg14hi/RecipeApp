@@ -66,6 +66,44 @@
         android:padding="12dp"
         android:layout_marginTop="8dp"/>
 
+    <!-- <EditText
+        android:id="@+id/newEmailField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter new email"
+        android:padding="12dp"
+        android:background="@android:color/white"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/updateEmailButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Update Email"
+        android:backgroundTint="@color/purple_700"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"/>
+
+    <EditText
+        android:id="@+id/newPasswordField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter new password"
+        android:padding="12dp"
+        android:background="@android:color/white"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/updatePasswordButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Update Password"
+        android:backgroundTint="@color/purple_700"
+        android:textColor="@android:color/white"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"/> -->
+
     <!-- Logout Button (Hidden if logged out) -->
     <Button
         android:id="@+id/logoutButton"
@@ -76,4 +114,21 @@
         android:textColor="@android:color/white"
         android:padding="12dp"
         android:visibility="gone"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/favoritesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/noFavoritesText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No favorite recipes yet!"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:padding="12dp"
+        android:visibility="gone"/>
+
 </LinearLayout>

@@ -57,6 +57,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation ("com.google.firebase:firebase-firestore:25.1.2")
     implementation ("com.google.firebase:firebase-auth:23.2.0")
+    implementation ("com.google.firebase:firebase-firestore:25.1.2")
+    implementation ("com.google.firebase:firebase-auth:23.2.0")
     implementation ("androidx.work:work-runtime:2.7.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -9,7 +9,15 @@
         android:id="@+id/navigation_home"
         android:name="hbv601g.Recipe.ui.home.HomeFragment"
         android:label="Home"
-        tools:layout="@layout/fragment_home"/>
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_navigation_home_to_createRecipeFragment"
+            app:destination="@id/createRecipeFragment" />
+        <action
+            android:id="@+id/action_navigation_home_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
+
+    </fragment>
 
     <!-- Dashboard Fragment -->
     <fragment
@@ -79,5 +87,24 @@
         android:name="hbv601g.Recipe.fragments.recipe.CreateRecipeFragment"
         android:label="Create Recipe"
         tools:layout="@layout/fragment_create_recipe" />
+
+    <action
+        android:id="@+id/action_createRecipeFragment_to_navigation_home"
+        app:destination="@id/navigation_home"
+        app:popUpTo="@id/navigation_home"
+        app:popUpToInclusive="true" />
+
+    <fragment
+        android:id="@+id/recipeDetailFragment"
+        android:name="hbv601g.Recipe.fragments.recipe.RecipeDetailFragment"
+        android:label="Recipe Detail"
+        tools:layout="@layout/fragment_recipe_detail" />
+
+    <fragment
+        android:id="@+id/newReviewFragment"
+        android:name="hbv601g.Recipe.fragments.review.NewReviewFragment"
+        android:label="New Review"
+        tools:layout="@layout/fragment_review" />
+
 
 </navigation>
