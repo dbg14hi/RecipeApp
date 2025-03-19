@@ -38,6 +38,9 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    viewBinding {
+        enable = true
+    }
 }
 
 dependencies {
@@ -50,10 +53,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
-    implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
     implementation("com.google.firebase:firebase-analytics")
-    implementation ("com.google.firebase:firebase-firestore:24.9.1")
-    implementation ("com.google.firebase:firebase-auth:22.0.0")
+    implementation ("com.google.firebase:firebase-firestore:25.1.2")
+    implementation ("com.google.firebase:firebase-auth:23.2.0")
+    implementation ("androidx.work:work-runtime:2.7.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
