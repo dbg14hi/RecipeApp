@@ -1,7 +1,18 @@
 package hbv601g.Recipe.fragments.recipe;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,6 +22,10 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,23 +35,33 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import hbv601g.Recipe.R;
+import hbv601g.Recipe.databinding.FragmentRecipeDetailBinding;
 import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.entities.Review;
 import hbv601g.Recipe.fragments.review.NewReviewFragment;
 import hbv601g.Recipe.fragments.review.ReviewAdapter;
 import hbv601g.Recipe.repository.FirestoreRepository;
+import hbv601g.Recipe.ui.notifications.RecipeNotificationWorker;
+import hbv601g.Recipe.utils.PermissionsHelper;
+import hbv601g.Recipe.utils.RecipeScheduler;
 
 public class RecipeDetailFragment extends Fragment {
 
@@ -50,10 +75,12 @@ public class RecipeDetailFragment extends Fragment {
     private String userId, recipeId;
     private boolean isFavorite = false;
     private Recipe recipe;
+    private FragmentRecipeDetailBinding _binding;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
+        _binding = FragmentRecipeDetailBinding.inflate(inflater, container, false);  // Initialize View Binding
+        View view = _binding.getRoot();
 
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         repository = new FirestoreRepository();
@@ -61,6 +88,10 @@ public class RecipeDetailFragment extends Fragment {
         if (getActivity() != null) {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        // Request necessary permissions and set up the schedule button.
+        PermissionsHelper.requestNecessaryPermissions(this);
+        setupScheduleButton();
 
         // Initialize UI elements
         titleTextView = view.findViewById(R.id.recipe_title);
@@ -235,6 +266,36 @@ public class RecipeDetailFragment extends Fragment {
             });
         }
     }
+
+    //  Setup schedule recipe Button
+    private void setupScheduleButton() {
+        _binding.scheduleRecipeButton.setOnClickListener(v -> {
+            RecipeScheduler scheduler = new RecipeScheduler(requireContext(), recipe, recipeId);
+            scheduler.openDateTimePicker();
+        });
+    }
+
+    // Launches permission request for reading and writing calendar events.
+    public void requestCalendarPermissions() {
+        requestPermissionLauncher.launch(new String[]{
+                Manifest.permission.READ_CALENDAR,
+                Manifest.permission.WRITE_CALENDAR
+        });
+    }
+
+    // Handles multiple permission requests for reading and writing calendar events.
+    private final ActivityResultLauncher<String[]> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
+                Boolean calendarReadGranted = result.getOrDefault(Manifest.permission.READ_CALENDAR, false);
+                Boolean calendarWriteGranted = result.getOrDefault(Manifest.permission.WRITE_CALENDAR, false);
+
+                if (calendarReadGranted && calendarWriteGranted) {
+                    Log.d("CalendarDebug", "Calendar permissions granted!");
+                } else {
+                    Log.e("CalendarDebug", "Calendar permissions denied!");
+                    Toast.makeText(getContext(), "Calendar permission needed to list calendars!", Toast.LENGTH_SHORT).show();
+                }
+            });
 }
 
 
