@@ -37,11 +37,6 @@ public class CreateRecipeFragment extends Fragment {
     private FirebaseFirestore db;
     private EditText titleInput, descriptionInput, ingredientsInput, cookingTimeInput;
     private Button submitRecipeButton;
-    private Spinner mealCategorySpinner;
-
-    private Spinner categorySpinner;
-
-
 
     @SuppressLint("WrongViewCast")
     @Nullable
