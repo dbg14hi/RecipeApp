@@ -123,7 +123,6 @@ public class UserService {
         }
     }
 
-
     // 🔹 Logout User → Reload ProfileFragment
     public void logoutUser() {
         auth.signOut();

@@ -70,7 +70,6 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             createRecipeFab.visibility = View.GONE
         }
 
-        // Initialize adapter and pass 'this' as the click listener
         adapter = RecipeAdapter(emptyList(), this)
         recyclerView.adapter = adapter
 
@@ -188,7 +187,6 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
         val navController = findNavController()
 
-        // Ensure we are not already in RecipeDetailFragment to prevent crashes
         if (navController.currentDestination?.id == R.id.recipeDetailFragment) {
             return
         }
