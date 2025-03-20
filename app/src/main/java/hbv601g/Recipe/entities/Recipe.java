@@ -1,6 +1,8 @@
 package hbv601g.Recipe.entities;
 
 import com.google.firebase.Timestamp;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
