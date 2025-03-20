@@ -5,7 +5,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
+import android.widget.CheckBox
+import android.widget.LinearLayout
+import android.widget.Toast
+import androidx.appcompat.widget.SearchView
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+    import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,10 +30,16 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private lateinit var homeViewModel: HomeViewModel
+    private lateinit var searchView: SearchView
+    private lateinit var dietaryRestrictionsLayout: LinearLayout
+    private lateinit var mealCategoriesLayout: LinearLayout
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: RecipeAdapter
     private lateinit var createRecipeFab: FloatingActionButton
     private val db = FirebaseFirestore.getInstance()
+
+    var selectedDietaryRestrictions = mutableListOf<String>()
+    var selectedMealCategories = mutableListOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,9 +51,14 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
         homeViewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
 
+        searchView = binding.recipeSearchView
+        dietaryRestrictionsLayout = binding.dietaryRestrictionsLayout
+        mealCategoriesLayout = binding.mealCategoriesLayout
+
         recyclerView = binding.recyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        // Make create recipe button
         createRecipeFab = binding.createRecipeFab
 
         if (FirebaseAuth.getInstance().currentUser != null) {
@@ -55,6 +73,53 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         adapter = RecipeAdapter(emptyList(), this)
         recyclerView.adapter = adapter
 
+        // Add category checkboxes and add listener
+        val dietaryRestrictions = listOf("Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free", "Nut-free")
+        dietaryRestrictions.forEach { category ->
+            val checkBox = CheckBox(context)
+            checkBox.text = category
+            checkBox.setOnCheckedChangeListener { _, isChecked ->
+                updateSelectedCategories()
+            }
+            dietaryRestrictionsLayout.addView(checkBox)
+        }
+
+        val mealCategories = listOf("Breakfast", "Lunch", "Snack", "Dinner")
+        mealCategories.forEach { category ->
+            val checkBox = CheckBox(context)
+            checkBox.text = category
+            checkBox.setOnCheckedChangeListener { _, isChecked ->
+                updateSelectedCategories()
+            }
+            mealCategoriesLayout.addView(checkBox)
+        }
+
+        // Search for recipes and update view
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+
+                val selectedDietaryRestrictions = homeViewModel.selectedDietaryRestrictions.value ?: emptyList()
+                val selectedMealCategories = homeViewModel.selectedMealCategories.value ?: emptyList()
+                homeViewModel.filterRecipes(newText.orEmpty(), selectedDietaryRestrictions, selectedMealCategories)
+                return true
+            }
+        })
+
+        homeViewModel.filteredRecipesLiveData.observe(viewLifecycleOwner) { recipes ->
+            adapter.updateData(recipes)
+        }
+
+        homeViewModel.errorLiveData.observe(viewLifecycleOwner) { errorMessage ->
+            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+        }
+
+        // Setup sorting dropdown
+        setupSortingDropdown()
+
         // Fetch recipes in real-time
         fetchRecipesInRealTime()
 
@@ -64,6 +129,21 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun setupSortingDropdown() {
+        val sortingOptions = arrayOf("Name", "Date Added")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, sortingOptions)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        binding.sortSpinner.adapter = adapter
+        binding.sortSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedSort = sortingOptions[position]
+                homeViewModel.sortRecipes(selectedSort)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
     }
 
     private fun fetchRecipesInRealTime() {
@@ -96,7 +176,6 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             }
     }
 
-
     override fun onRecipeClick(recipe: Recipe) {
         val bundle = Bundle().apply {
             putString("recipeId", recipe.recipeId)
@@ -113,5 +192,24 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         }
 
         navController.navigate(R.id.action_navigation_home_to_recipeDetailFragment, bundle)
+    }
+
+    private fun updateSelectedCategories() {
+        val dietaryRestrictions = mutableListOf<String>()
+        for (i in 0 until dietaryRestrictionsLayout.childCount) {
+            val checkBox = dietaryRestrictionsLayout.getChildAt(i) as CheckBox
+            if (checkBox.isChecked) {
+                dietaryRestrictions.add(checkBox.text.toString())
+            }
+        }
+
+        val mealCategories = mutableListOf<String>()
+        for (i in 0 until mealCategoriesLayout.childCount) {
+            val checkBox = mealCategoriesLayout.getChildAt(i) as CheckBox
+            if (checkBox.isChecked) {
+                mealCategories.add(checkBox.text.toString())
+            }
+        }
+        homeViewModel.setSelectedCategories(dietaryRestrictions, mealCategories)
     }
 }

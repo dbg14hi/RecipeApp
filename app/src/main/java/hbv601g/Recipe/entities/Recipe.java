@@ -1,5 +1,7 @@
 package hbv601g.Recipe.entities;
 
+import java.util.ArrayList;
+import com.google.firebase.Timestamp;
 import com.google.firebase.Timestamp;
 
 import java.util.ArrayList;
@@ -12,9 +14,6 @@ public class Recipe {
     private String description;
     private List<String> ingredients;
     private int cookingTime;
-    private List<String> dietaryRestrictions;
-    private List<String> mealCategories;
-    private Timestamp timestamp;  // Add timestamp field
     private String userId;
 
 

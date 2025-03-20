@@ -1,11 +1,9 @@
 package hbv601g.Recipe.fragments.recipe;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -44,7 +42,6 @@ public class CreateRecipeFragment extends Fragment {
     private final List<String> allDietaryRestrictions = Arrays.asList("Nut-free", "Vegan", "Vegetarian", "Gluten-free", "Dairy-free"); // Example data
     private final List<String> allMealCategories = Arrays.asList("Breakfast", "Lunch", "Dinner", "Snacks");
 
-    @SuppressLint("WrongViewCast")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
