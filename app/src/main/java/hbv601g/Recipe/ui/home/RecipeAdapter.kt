@@ -27,10 +27,9 @@ class RecipeAdapter(
         holder.bind(recipe)
 
         holder.itemView.setOnClickListener {
-            listener.onRecipeClick(recipe)
+            listener.onRecipeClick(recipes[position]) // Call listener only if it's not null
         }
     }
-
 
     override fun getItemCount(): Int = recipes.size
 

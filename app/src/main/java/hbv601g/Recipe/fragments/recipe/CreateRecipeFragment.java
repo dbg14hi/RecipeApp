@@ -7,10 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.widget.CheckBox;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -24,6 +25,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FieldValue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +38,11 @@ public class CreateRecipeFragment extends Fragment {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private EditText titleInput, descriptionInput, ingredientsInput, cookingTimeInput;
+    private LinearLayout dietaryRestrictionsContainer, mealCategoriesContainer;
     private Button submitRecipeButton;
+
+    private final List<String> allDietaryRestrictions = Arrays.asList("Nut-free", "Vegan", "Vegetarian", "Gluten-free", "Dairy-free"); // Example data
+    private final List<String> allMealCategories = Arrays.asList("Breakfast", "Lunch", "Dinner", "Snacks");
 
     @SuppressLint("WrongViewCast")
     @Nullable
@@ -55,7 +61,22 @@ public class CreateRecipeFragment extends Fragment {
         descriptionInput = view.findViewById(R.id.descriptionInput);
         ingredientsInput = view.findViewById(R.id.ingredientsInput);
         cookingTimeInput = view.findViewById(R.id.cookingTimeInput);
+        dietaryRestrictionsContainer = view.findViewById(R.id.dietaryRestrictionsContainer);
+        mealCategoriesContainer = view.findViewById(R.id.mealCategoriesContainer);
+
         submitRecipeButton = view.findViewById(R.id.submitRecipeButton);
+
+        for (String restriction : allDietaryRestrictions) {
+            CheckBox checkBox = new CheckBox(this.getContext());
+            checkBox.setText(restriction);
+            dietaryRestrictionsContainer.addView(checkBox);
+        }
+
+        for (String category : allMealCategories) {
+            CheckBox checkBox = new CheckBox(this.getContext());
+            checkBox.setText(category);
+            mealCategoriesContainer.addView(checkBox);
+        }
 
         submitRecipeButton.setOnClickListener(v -> createRecipe());
 
@@ -77,6 +98,22 @@ public class CreateRecipeFragment extends Fragment {
         String description = descriptionInput.getText().toString().trim();
         String ingredientsText = ingredientsInput.getText().toString().trim();
         String cookingTimeStr = cookingTimeInput.getText().toString().trim();
+
+        List<String> selectedDietaryRestrictions = new ArrayList<>();
+        for (int i = 0; i < dietaryRestrictionsContainer.getChildCount(); i++) {
+            CheckBox checkBox = (CheckBox) dietaryRestrictionsContainer.getChildAt(i);
+            if (checkBox.isChecked()) {
+                selectedDietaryRestrictions.add(checkBox.getText().toString());
+            }
+        }
+
+        List<String> selectedMealCategories = new ArrayList<>();
+        for (int i = 0; i < mealCategoriesContainer.getChildCount(); i++) {
+            CheckBox checkBox = (CheckBox) mealCategoriesContainer.getChildAt(i);
+            if (checkBox.isChecked()) {
+                selectedMealCategories.add(checkBox.getText().toString());
+            }
+        }
 
         if (title.isEmpty() || description.isEmpty() || ingredientsText.isEmpty() || cookingTimeStr.isEmpty()) {
             Toast.makeText(getContext(), "All fields are required!", Toast.LENGTH_SHORT).show();
@@ -102,8 +139,10 @@ public class CreateRecipeFragment extends Fragment {
         recipe.put("description", description);
         recipe.put("ingredients", ingredients);
         recipe.put("cookingTime", cookingTime);
-        recipe.put("userId", userId);
+        recipe.put("dietaryRestrictions", selectedDietaryRestrictions);
+        recipe.put("mealCategories", selectedMealCategories);
         recipe.put("timestamp", FieldValue.serverTimestamp());
+        recipe.put("userId", userId);
 
         db.collection("recipes").add(recipe)
                 .addOnSuccessListener(documentReference -> {

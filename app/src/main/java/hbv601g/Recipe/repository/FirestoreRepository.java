@@ -5,7 +5,6 @@ import android.util.Log;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -59,11 +58,12 @@ public class FirestoreRepository {
                     System.out.println("📄 Document data: " + document.getData());
 
                     String recipeId = document.getId();
-                    String title = document.getString("title");
-                    String description = document.getString("description");
-                    Integer cookingTime = document.getLong("cookingTime") != null ? document.getLong("cookingTime").intValue() : 0;
+                    String title = document.getString("title");  // Fetch title (instead of name)
+                    String description = document.getString("description");  // Fetch description
+                    int cookingTime = document.getLong("cookingTime") != null ? document.getLong("cookingTime").intValue() : 0;
                     Object ingredientsObj = document.get("ingredients");
-                    String mealCategory = document.getString("mealCategory");  // Get meal category
+                    Object dietaryRestrictionsObj = document.get("dietaryRestrictions");
+                    Object mealCategoriesObj = document.get("mealCategories");
                     Timestamp timestamp = document.getTimestamp("timestamp"); // Get timestamp
 
                     List<String> ingredients = new ArrayList<>();
@@ -73,12 +73,30 @@ public class FirestoreRepository {
                         ingredients = (List<String>) ingredientsObj;
                     }
 
+                    List<String> dietaryRestrictions = new ArrayList<>();
+                    if (dietaryRestrictionsObj instanceof String) {
+                        dietaryRestrictions = Arrays.asList(((String) dietaryRestrictionsObj).split(",\\s*"));
+                    } else if (dietaryRestrictionsObj instanceof List) {
+                        dietaryRestrictions = (List<String>) dietaryRestrictionsObj;
+                    }
+
+                    List<String> mealCategories = new ArrayList<>();
+                    if (mealCategoriesObj instanceof String) {
+                        mealCategories = Arrays.asList(((String) mealCategoriesObj).split(",\\s*"));
+                    } else if (mealCategoriesObj instanceof List) {
+                        mealCategories = (List<String>) mealCategoriesObj;
+                    }
+
                     Recipe recipe = new Recipe();
                     recipe.setRecipeId(recipeId);
                     recipe.setTitle(title);
                     recipe.setDescription(description);
                     recipe.setCookingTime(cookingTime);
                     recipe.setIngredients(ingredients);
+                    recipe.setDietaryRestrictions(dietaryRestrictions);
+                    recipe.setMealCategories(mealCategories);
+                    recipe.setTimestamp(timestamp);  // Set timestamp
+
                     recipes.add(recipe);
                 }
                 System.out.println("Loaded " + recipes.size() + " recipes");
@@ -108,6 +126,8 @@ public class FirestoreRepository {
         favoriteData.put("description", recipe.getDescription());
         favoriteData.put("cookingTime", recipe.getCookingTime());
         favoriteData.put("ingredients", recipe.getIngredients());
+        favoriteData.put("dietaryRestrictions", recipe.getDietaryRestrictions());
+        favoriteData.put("mealCategories", recipe.getMealCategories());
 
         usersCollection.document(userId)
                 .collection("favorites")
@@ -118,7 +138,6 @@ public class FirestoreRepository {
                 .addOnFailureListener(e ->
                         Log.e("FirestoreRepository", "Error adding recipe to favorites: " + e.getMessage()));
     }
-
 
     public void removeRecipeFromFavorites(String userId, String recipeId) {
         if (userId == null || userId.isEmpty() || recipeId == null || recipeId.isEmpty()) {
