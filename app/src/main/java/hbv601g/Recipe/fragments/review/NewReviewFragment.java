@@ -43,9 +43,15 @@ public class NewReviewFragment extends Fragment {
     private void submitReview() {
         String comment = commentEditText.getText().toString();
         int rating = (int) ratingBar.getRating();
+        String recipeId = getArguments() != null ? getArguments().getString("recipe_id") : null;
+
+        if (recipeId == null) {
+            Toast.makeText(getContext(), "Error: Missing recipe ID", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         if (!comment.isEmpty() && rating > 0) {
-            Review newReview = new Review(comment, rating, null, "recipe_id", null); // Use actual recipe ID
+            Review newReview = new Review(comment, rating, null, recipeId, null);
             reviewService.addReview(newReview, new ReviewService.OnReviewAddedListener() {
                 @Override
                 public void onSuccess(String reviewId) {
@@ -62,4 +68,5 @@ public class NewReviewFragment extends Fragment {
             Toast.makeText(getContext(), "Please enter a comment and rating", Toast.LENGTH_SHORT).show();
         }
     }
+
 }

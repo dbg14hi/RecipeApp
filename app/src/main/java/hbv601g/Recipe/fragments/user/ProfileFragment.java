@@ -2,6 +2,8 @@ package hbv601g.Recipe.fragments.user;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import hbv601g.Recipe.ui.home.FavoritesAdapter;
@@ -10,26 +12,38 @@ import hbv601g.Recipe.repository.FirestoreRepository;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.EmailAuthProvider;
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.services.UserService;
 
@@ -37,19 +51,25 @@ public class ProfileFragment extends Fragment {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
+    private FirebaseStorage storage;
+    private StorageReference storageRef;
+    private FirebaseUser currentUser;
+    private ImageView profileImageView;
     private TextView usernameText, emailText, noFavoritesText;
-    private Button loginButton, registerButton, logoutButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
-    private EditText newUsernameField, newEmailText, newPasswordText;
+    private Button loginButton, registerButton, logoutButton, changeProfilePicButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
+    private EditText newUsernameField, newEmailField, currentPasswordField, newPasswordField;
     private UserService userService;
-
-    private LoginFragment loginFragment; //skoða
 
     private RecyclerView favoritesRecyclerView;
     private FavoritesAdapter favoritesAdapter;
     private List<Recipe> favoriteRecipes;
     private FirestoreRepository firestoreRepository;
+    private static final int PICK_IMAGE_REQUEST = 1;
+    private Uri imageUri;
+
 
     public ProfileFragment() {
+        // Required empty public constructor
     }
 
     @SuppressLint("MissingInflatedId")
@@ -60,8 +80,18 @@ public class ProfileFragment extends Fragment {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        userService = new UserService(requireActivity());
+        storage = FirebaseStorage.getInstance();
+        storageRef = storage.getReference();
+
+        if (getActivity() != null) {
+            userService = new UserService(getActivity());
+        }
         firestoreRepository = new FirestoreRepository();
+
+        // 🔹 Profile Picture Elements
+        profileImageView = view.findViewById(R.id.profileImageView);
+        changeProfilePicButton = view.findViewById(R.id.changeProfilePicButton);
+
 
         // 🔹 Initialize UI Elements
         usernameText = view.findViewById(R.id.usernameText);
@@ -72,6 +102,11 @@ public class ProfileFragment extends Fragment {
         logoutButton = view.findViewById(R.id.logoutButton);
         newUsernameField = view.findViewById(R.id.newUsernameField);
         updateUsernameButton = view.findViewById(R.id.updateUsernameButton);
+        newEmailField = view.findViewById(R.id.newEmailField);
+        updateEmailButton = view.findViewById(R.id.updateEmailButton);
+        currentPasswordField = view.findViewById(R.id.currentPasswordField);
+        newPasswordField = view.findViewById(R.id.newPasswordField);
+        updatePasswordButton = view.findViewById(R.id.updatePasswordButton);
         newEmailText = view.findViewById(R.id.newEmailText);
         updateEmailButton = view.findViewById(R.id.updateEmailButton);
         newPasswordText = view.findViewById(R.id.newPasswordText);
@@ -88,10 +123,18 @@ public class ProfileFragment extends Fragment {
 
         favoriteRecipes = new ArrayList<>();
         favoritesAdapter = new FavoritesAdapter(favoriteRecipes, recipe -> {
-            Toast.makeText(requireContext(), "Clicked on: " + recipe.getTitle(), Toast.LENGTH_SHORT).show();
+            removeFromFavorites(recipe);
             return null;
         });
+
         favoritesRecyclerView.setAdapter(favoritesAdapter);
+
+        // 🔹 Load profile picture
+        loadProfilePicture();
+
+        // 🔹 Change Profile Picture
+        changeProfilePicButton.setOnClickListener(v -> openFileChooser());
+        profileImageView.setOnClickListener(v -> openFileChooser());
 
         // 🔹 Update UI when fragment is opened
         auth.addAuthStateListener(firebaseAuth -> {
@@ -128,7 +171,90 @@ public class ProfileFragment extends Fragment {
             userService.updateUsername(newUsername);
         });
 
+        // 🔹 Update Email
+        updateEmailButton.setOnClickListener(v -> {
+            String newEmail = newEmailField.getText().toString().trim();
+            String currentPassword = currentPasswordField.getText().toString().trim(); // Add a field for this!
+
+            if (newEmail.isEmpty() || currentPassword.isEmpty()) {
+                Toast.makeText(requireContext(), "Please enter your current password and new email", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            userService.updateEmail(currentPassword, newEmail);
+        });
+
+        // 🔹 Update Password
+        updatePasswordButton.setOnClickListener(v -> {
+            String newPassword = newPasswordField.getText().toString().trim();
+            String currentPassword = currentPasswordField.getText().toString().trim(); // Add a field for this!
+
+            if (newPassword.isEmpty() || currentPassword.isEmpty()) {
+                Toast.makeText(requireContext(), "Please enter your current password and new password", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            userService.updatePassword(currentPassword, newPassword);
+        });
+
+
         return view;
+    }
+
+    private void openFileChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+            imageUri = data.getData();
+            uploadImageToFirebase();
+        }
+    }
+
+    private void uploadImageToFirebase() {
+        if (imageUri == null || currentUser == null) return;
+
+        String userId = currentUser.getUid();
+        StorageReference fileRef = storageRef.child("profile_pictures/" + userId + ".jpg");
+
+        try {
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), imageUri);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+            byte[] data = baos.toByteArray();
+
+            UploadTask uploadTask = fileRef.putBytes(data);
+            uploadTask.addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                String imageUrl = uri.toString();
+
+                db.collection("users").document(userId)
+                        .update("profileImage", imageUrl)
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(getActivity(), "Profile Picture Updated!", Toast.LENGTH_SHORT).show();
+                            loadProfilePicture();
+                        });
+            }));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadProfilePicture() {
+        if (currentUser == null) return;
+
+        db.collection("users").document(currentUser.getUid()).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists() && documentSnapshot.contains("profileImage")) {
+                String imageUrl = documentSnapshot.getString("profileImage");
+                if (imageUrl != null && !imageUrl.isEmpty()) {
+                    Glide.with(getActivity()).load(imageUrl).into(profileImageView);
+                }
+            }
+        });
     }
 
     private void updateEmail() {
@@ -243,17 +369,29 @@ public class ProfileFragment extends Fragment {
         if (user != null) {
             String userId = user.getUid();
 
-            db.collection("users").document(userId).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            usernameText.setText("Username: " + documentSnapshot.getString("username"));
-                            emailText.setText("Email: " + documentSnapshot.getString("email"));
-                        }
-                    });
+            user.reload().addOnCompleteListener(task -> { // 🔹 Ensure the latest user data is fetched
+                if (task.isSuccessful()) {
+                    db.collection("users").document(userId).get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    usernameText.setText("Username: " + documentSnapshot.getString("username"));
+                                    emailText.setText("Email: " + user.getEmail());
+                                }
+                            });
 
-            // 🔹 Fetch user's favorite recipes
-            loadUserFavorites(userId);
+                    loadUserFavorites(userId);
 
+                    usernameText.setVisibility(View.VISIBLE);
+                    emailText.setVisibility(View.VISIBLE);
+                    loginButton.setVisibility(View.GONE);
+                    registerButton.setVisibility(View.GONE);
+                    logoutButton.setVisibility(View.VISIBLE);
+                    newUsernameField.setVisibility(View.VISIBLE);
+                    updateUsernameButton.setVisibility(View.VISIBLE);
+                } else {
+                    Toast.makeText(requireContext(), "Failed to reload user", Toast.LENGTH_SHORT).show();
+                }
+            });
             // 🔹 Show profile elements
             usernameText.setVisibility(View.VISIBLE);
             emailText.setVisibility(View.VISIBLE);
@@ -285,6 +423,7 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    // 🔹 Remove recipe from User favorites
     private void removeFromFavorites(Recipe recipe) {
         String userId = auth.getCurrentUser().getUid();
         if (userId == null) {
@@ -321,7 +460,7 @@ public class ProfileFragment extends Fragment {
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        List<String> favoriteRecipeIds = (List<String>) documentSnapshot.get("userFavourites");
+                        List<String> favoriteRecipeIds = (List<String>) documentSnapshot.get("favorites"); // ✅ Use "favorites" here
 
                         if (favoriteRecipeIds == null || favoriteRecipeIds.isEmpty()) {
                             Log.d("Favorites", "No favorites found.");
@@ -356,6 +495,5 @@ public class ProfileFragment extends Fragment {
                 .addOnFailureListener(e -> Log.e("Favorites", "Failed to fetch user data", e));
     }
 
-
-
 }
+

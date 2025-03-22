@@ -1,22 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="20dp"
-    android:gravity="center">
+    android:background="@android:color/white">
 
-    <!-- User Info (Hidden if logged out) -->
-    <TextView
-        android:id="@+id/usernameText"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Username"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:padding="8dp"
-        android:visibility="gone"/>
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- Login & Register Buttons -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <Button
+                    android:id="@+id/loginButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Login"
+                    android:backgroundTint="@color/purple_700"
+                    android:textColor="@android:color/white"
+                    android:padding="12dp"
+                    android:layout_marginBottom="8dp"/>
+
+                <Button
+                    android:id="@+id/registerButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Register"
+                    android:backgroundTint="@color/teal_700"
+                    android:textColor="@android:color/white"
+                    android:padding="12dp"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Profile Picture -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            app:cardCornerRadius="60dp"
+            app:cardElevation="6dp"
+            android:layout_gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/profileImageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/default_profile_picture"/>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Change Profile Picture Button -->
+        <Button
+            android:id="@+id/changeProfilePicButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change Profile Picture"
+            android:backgroundTint="@color/teal_700"
+            android:textColor="@android:color/white"
+            android:padding="10dp"
+            android:layout_marginTop="12dp"
+            android:layout_gravity="center"/>
+
+        <!-- User Info Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/usernameText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Username"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:padding="8dp"
+                    android:visibility="gone"/>
 
     <TextView
         android:id="@+id/emailText"
@@ -76,100 +162,186 @@
         android:backgroundTint="@color/purple_700"
         android:textColor="@android:color/white"
         android:padding="12dp"/>
+                <Button
+                    android:id="@+id/logoutButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="LOGOUT"
+                    android:backgroundTint="@color/logout_red"
+                    android:textColor="@android:color/white"
+                    android:padding="12dp"
+                    android:visibility="gone"/>
 
-    <Button
-        android:id="@+id/registerButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="CREATE ACCOUNT"
-        android:backgroundTint="@color/teal_700"
-        android:textColor="@android:color/white"
-        android:padding="12dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-    <EditText
-        android:id="@+id/newUsernameField"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter new username"
-        android:padding="12dp"
-        android:background="@android:color/white"
-        android:layout_marginTop="16dp"/>
+        <!-- Current Password (Required for Email & Password Updates) -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="6dp">
 
-    <Button
-        android:id="@+id/updateUsernameButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Update Username"
-        android:backgroundTint="@color/purple_700"
-        android:textColor="@android:color/white"
-        android:padding="12dp"
-        android:layout_marginTop="8dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-    <!-- <EditText
-        android:id="@+id/newEmailField"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter new email"
-        android:padding="12dp"
-        android:background="@android:color/white"
-        android:layout_marginTop="16dp"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Current Password (Required)"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:paddingBottom="8dp"/>
 
-    <Button
-        android:id="@+id/updateEmailButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Update Email"
-        android:backgroundTint="@color/purple_700"
-        android:textColor="@android:color/white"
-        android:padding="12dp"
-        android:layout_marginTop="8dp"/>
+                <EditText
+                    android:id="@+id/currentPasswordField"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter current password"
+                    android:inputType="textPassword"
+                    android:padding="12dp"
+                    android:background="@android:color/white"/>
 
-    <EditText
-        android:id="@+id/newPasswordField"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter new password"
-        android:padding="12dp"
-        android:background="@android:color/white"
-        android:layout_marginTop="16dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-    <Button
-        android:id="@+id/updatePasswordButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Update Password"
-        android:backgroundTint="@color/purple_700"
-        android:textColor="@android:color/white"
-        android:padding="12dp"
-        android:layout_marginTop="8dp"/> -->
+        <!-- Update Username & Email Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="6dp">
 
-    <!-- Logout Button (Hidden if logged out) -->
-    <Button
-        android:id="@+id/logoutButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="LOGOUT"
-        android:backgroundTint="@color/logout_red"
-        android:textColor="@android:color/white"
-        android:padding="12dp"
-        android:visibility="gone"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/favoritesRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"/>
+                <EditText
+                    android:id="@+id/newUsernameField"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter new username"
+                    android:padding="12dp"
+                    android:background="@android:color/white"
+                    android:layout_marginBottom="8dp"/>
 
-    <TextView
-        android:id="@+id/noFavoritesText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="No favorite recipes yet!"
-        android:textSize="16sp"
-        android:gravity="center"
-        android:padding="12dp"
-        android:visibility="gone"/>
+                <Button
+                    android:id="@+id/updateUsernameButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Update Username"
+                    android:backgroundTint="@color/purple_700"
+                    android:textColor="@android:color/white"
+                    android:padding="12dp"
+                    android:layout_marginBottom="16dp"/>
 
+                <EditText
+                    android:id="@+id/newEmailField"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter new email"
+                    android:padding="12dp"
+                    android:background="@android:color/white"
+                    android:layout_marginBottom="8dp"/>
 
+                <Button
+                    android:id="@+id/updateEmailButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Update Email"
+                    android:backgroundTint="@color/purple_700"
+                    android:textColor="@android:color/white"
+                    android:padding="12dp"/>
 
-</LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Update Password Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <EditText
+                    android:id="@+id/newPasswordField"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter new password"
+                    android:inputType="textPassword"
+                    android:padding="12dp"
+                    android:background="@android:color/white"
+                    android:layout_marginBottom="8dp"/>
+
+                <Button
+                    android:id="@+id/updatePasswordButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Update Password"
+                    android:backgroundTint="@color/purple_700"
+                    android:textColor="@android:color/white"
+                    android:padding="12dp"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Favorite Recipes Section -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="6dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Favorite Recipes"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:paddingBottom="8dp"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/favoritesRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:id="@+id/noFavoritesText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="No favorite recipes yet!"
+                    android:textSize="16sp"
+                    android:gravity="center"
+                    android:padding="12dp"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</ScrollView>
+
