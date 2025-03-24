@@ -4,8 +4,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import hbv601g.Recipe.ui.home.FavoritesAdapter;
 import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.repository.FirestoreRepository;
@@ -33,14 +37,12 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.services.UserService;
@@ -49,8 +51,6 @@ public class ProfileFragment extends Fragment {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private FirebaseStorage storage;
-    private StorageReference storageRef;
     private FirebaseUser currentUser;
     private ImageView profileImageView;
     private TextView usernameText, emailText, noFavoritesText;
@@ -65,6 +65,9 @@ public class ProfileFragment extends Fragment {
     private static final int PICK_IMAGE_REQUEST = 1;
     private Uri imageUri;
 
+    private final String CLOUDINARY_CLOUD_NAME = "dmvi22sp2";
+    private final String CLOUDINARY_API_KEY = "467191768881654";
+    private final String CLOUDINARY_API_SECRET = "J5-uGDut7KJo7EDBEEYlCheEvAI";
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -78,8 +81,6 @@ public class ProfileFragment extends Fragment {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        storage = FirebaseStorage.getInstance();
-        storageRef = storage.getReference();
 
         if (getActivity() != null) {
             userService = new UserService(getActivity());
@@ -131,8 +132,18 @@ public class ProfileFragment extends Fragment {
             updateUI();
             FirebaseUser user = auth.getCurrentUser();
             if (user != null) {
+                Log.d("Auth", "User ID: " + user.getUid());
+                Log.d("Auth", "User Email: " + user.getEmail());
                 loadUserFavorites(user.getUid());
+            } else {
+                Log.d("Auth", "User is NULL");
             }
+        });
+
+        auth.addAuthStateListener(firebaseAuth -> {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            Log.d("AuthStateListener", "User: " + (user != null ? user.getEmail() : "NULL"));
+            updateUI();
         });
 
 
@@ -190,6 +201,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void openFileChooser() {
+        Log.d("ProfileFragment", "openFileChooser() called");  // ✅ Debugging
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -202,42 +214,71 @@ public class ProfileFragment extends Fragment {
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
             imageUri = data.getData();
-            uploadImageToFirebase();
+            Log.d("ProfileFragment", "Image selected: " + imageUri.toString());  // ✅ Debugging
+            uploadImageToCloudinary();
+        } else {
+            Log.d("ProfileFragment", "Image selection failed or canceled");
         }
     }
 
-    private void uploadImageToFirebase() {
-        if (imageUri == null || currentUser == null) return;
+    private void uploadImageToCloudinary() {
+        if (imageUri == null) {
+            Log.e("ProfileFragment", "uploadImageToCloudinary: No image URI found");
+            return;
+        }
 
-        String userId = currentUser.getUid();
-        StorageReference fileRef = storageRef.child("profile_pictures/" + userId + ".jpg");
+        Log.d("ProfileFragment", "Uploading image to Cloudinary...");
 
         try {
-            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), imageUri);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
-            byte[] data = baos.toByteArray();
+            InputStream inputStream = getActivity().getContentResolver().openInputStream(imageUri);
+            byte[] imageBytes = new byte[inputStream.available()];
+            inputStream.read(imageBytes);
+            inputStream.close();
 
-            UploadTask uploadTask = fileRef.putBytes(data);
-            uploadTask.addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                String imageUrl = uri.toString();
+            Map config = new HashMap();
+            config.put("cloud_name", CLOUDINARY_CLOUD_NAME);
+            config.put("api_key", CLOUDINARY_API_KEY);
+            config.put("api_secret", CLOUDINARY_API_SECRET);
 
-                db.collection("users").document(userId)
-                        .update("profileImage", imageUrl)
-                        .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(getActivity(), "Profile Picture Updated!", Toast.LENGTH_SHORT).show();
-                            loadProfilePicture();
-                        });
-            }));
+            Cloudinary cloudinary = new Cloudinary(config);
+
+            new Thread(() -> {
+                try {
+                    Map uploadResult = cloudinary.uploader().upload(imageBytes, ObjectUtils.asMap("folder", "profile_pictures"));
+                    String imageUrl = (String) uploadResult.get("secure_url");
+
+                    Log.d("ProfileFragment", "Image uploaded: " + imageUrl);  // ✅ Debugging
+                    saveImageUrlToFirestore(imageUrl);
+                } catch (Exception e) {
+                    Log.e("ProfileFragment", "Cloudinary upload failed", e);
+                }
+            }).start();
+
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("ProfileFragment", "Error reading image file", e);
         }
+    }
+
+
+    private void saveImageUrlToFirestore(String imageUrl) {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        db.collection("users").document(user.getUid())
+                .update("profileImage", imageUrl)
+                .addOnSuccessListener(aVoid -> {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(), "Profile Picture Updated!", Toast.LENGTH_SHORT).show();
+                        loadProfilePicture();
+                    });
+                });
     }
 
     private void loadProfilePicture() {
-        if (currentUser == null) return;
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
 
-        db.collection("users").document(currentUser.getUid()).get().addOnSuccessListener(documentSnapshot -> {
+        db.collection("users").document(user.getUid()).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists() && documentSnapshot.contains("profileImage")) {
                 String imageUrl = documentSnapshot.getString("profileImage");
                 if (imageUrl != null && !imageUrl.isEmpty()) {
@@ -250,10 +291,11 @@ public class ProfileFragment extends Fragment {
     // 🔹 Update UI based on login state
     private void updateUI() {
         FirebaseUser user = auth.getCurrentUser();
+
         if (user != null) {
             String userId = user.getUid();
 
-            user.reload().addOnCompleteListener(task -> { // 🔹 Ensure the latest user data is fetched
+            user.reload().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     db.collection("users").document(userId).get()
                             .addOnSuccessListener(documentSnapshot -> {
@@ -264,30 +306,51 @@ public class ProfileFragment extends Fragment {
                             });
 
                     loadUserFavorites(userId);
+                    loadProfilePicture();
 
+                    profileImageView.setVisibility(View.VISIBLE);
+                    changeProfilePicButton.setVisibility(View.VISIBLE);
                     usernameText.setVisibility(View.VISIBLE);
                     emailText.setVisibility(View.VISIBLE);
-                    loginButton.setVisibility(View.GONE);
-                    registerButton.setVisibility(View.GONE);
-                    logoutButton.setVisibility(View.VISIBLE);
                     newUsernameField.setVisibility(View.VISIBLE);
                     updateUsernameButton.setVisibility(View.VISIBLE);
+                    newEmailField.setVisibility(View.VISIBLE);
+                    updateEmailButton.setVisibility(View.VISIBLE);
+                    currentPasswordField.setVisibility(View.VISIBLE);
+                    newPasswordField.setVisibility(View.VISIBLE);
+                    updatePasswordButton.setVisibility(View.VISIBLE);
+                    logoutButton.setVisibility(View.VISIBLE);
+                    favoritesRecyclerView.setVisibility(View.VISIBLE);
+
+                    loginButton.setVisibility(View.GONE);
+                    registerButton.setVisibility(View.GONE);
+
                 } else {
                     Toast.makeText(requireContext(), "Failed to reload user", Toast.LENGTH_SHORT).show();
                 }
             });
-        } else {
-            favoritesRecyclerView.setVisibility(View.GONE);
 
+        } else {
+            profileImageView.setVisibility(View.GONE);
+            changeProfilePicButton.setVisibility(View.GONE);
             usernameText.setVisibility(View.GONE);
             emailText.setVisibility(View.GONE);
+            newUsernameField.setVisibility(View.GONE);
+            updateUsernameButton.setVisibility(View.GONE);
+            newEmailField.setVisibility(View.GONE);
+            updateEmailButton.setVisibility(View.GONE);
+            currentPasswordField.setVisibility(View.GONE);
+            newPasswordField.setVisibility(View.GONE);
+            updatePasswordButton.setVisibility(View.GONE);
+            favoritesRecyclerView.setVisibility(View.GONE);
+            noFavoritesText.setVisibility(View.GONE);
+
             loginButton.setVisibility(View.VISIBLE);
             registerButton.setVisibility(View.VISIBLE);
             logoutButton.setVisibility(View.GONE);
-            newUsernameField.setVisibility(View.GONE);
-            updateUsernameButton.setVisibility(View.GONE);
         }
     }
+
 
     // 🔹 Remove recipe from User favorites
     private void removeFromFavorites(Recipe recipe) {
