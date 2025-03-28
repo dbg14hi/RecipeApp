@@ -150,7 +150,7 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     }
 
     private fun setupSortingDropdown() {
-        val sortingOptions = arrayOf("Name", "Date Added")
+        val sortingOptions = arrayOf("A-Z", "Z-A", "Newest First", "Oldest First" )
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, sortingOptions)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
