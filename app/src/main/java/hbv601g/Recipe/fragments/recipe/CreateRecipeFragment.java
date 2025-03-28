@@ -41,12 +41,15 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 
 import hbv601g.Recipe.R;
+import hbv601g.Recipe.repository.CloudinaryRepository;
 
 
 public class CreateRecipeFragment extends Fragment {
 
     private FirebaseAuth auth;
     private FirebaseFirestore db;
+    private CloudinaryRepository cloudinaryRepository;
+
     private EditText titleInput, descriptionInput, ingredientsInput, cookingTimeInput;
     private LinearLayout dietaryRestrictionsContainer, mealCategoriesContainer;
 
@@ -101,6 +104,8 @@ public class CreateRecipeFragment extends Fragment {
         if (getActivity() != null) {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
+        cloudinaryRepository = new CloudinaryRepository(requireContext());
 
         titleInput = view.findViewById(R.id.titleInput);
         descriptionInput = view.findViewById(R.id.descriptionInput);
@@ -203,9 +208,38 @@ public class CreateRecipeFragment extends Fragment {
                             .addOnSuccessListener(aVoid -> {
                                 Toast.makeText(getContext(), "Recipe added!", Toast.LENGTH_SHORT).show();
 
-                                // Navigate back to HomeFragment
-                                NavHostFragment.findNavController(CreateRecipeFragment.this)
-                                        .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                if (recipeImageUri != null) {
+                                    cloudinaryRepository.uploadImageToCloudinary(recipeImageUri, recipeId, new CloudinaryRepository.CloudinaryCallback() {
+                                        @Override
+                                        public void onSuccess(String imageUrl) {
+                                            documentReference.update("imageUrl", imageUrl)
+                                                .addOnSuccessListener(aVoid -> {
+                                                    // Navigate back to HomeFragment
+                                                    NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                            .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Toast.makeText(getContext(), "Failed to update image URL", Toast.LENGTH_SHORT).show();
+                                                    // Navigate back to HomeFragment
+                                                    NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                            .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                                });
+                                        }
+
+                                        @Override
+                                        public void onError(String errorMessage) {
+                                            Toast.makeText(getContext(), "Image upload failed: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                            // Navigate back to HomeFragment
+                                            NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                    .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                        }
+                                    });
+                                } else {
+                                    // Navigate back to HomeFragment if no image to upload
+                                    NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                            .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                }
+
                             })
                             .addOnFailureListener(e ->
                                     Toast.makeText(getContext(), "Failed to update recipe ID", Toast.LENGTH_SHORT).show());

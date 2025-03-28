@@ -2,11 +2,16 @@ package hbv601g.Recipe.repository;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
+
 import com.cloudinary.Cloudinary;
 import com.cloudinary.api.ApiResponse;
 import com.cloudinary.utils.ObjectUtils;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,15 +24,14 @@ public class CloudinaryRepository {
 
     public CloudinaryRepository(Context context) {
         this.context = context;
-        Map<String, String> config = ObjectUtils.asMap(
-                "cloud_name", BuildConfig.CLOUDINARY_CLOUD_NAME,
-                "api_key", BuildConfig.CLOUDINARY_API_KEY,
-                "api_secret", BuildConfig.CLOUDINARY_API_SECRET
-        );
+        Map config = new HashMap();
+        config.put("cloud_name", BuildConfig.CLOUDINARY_CLOUD_NAME);
+        config.put("api_key", BuildConfig.CLOUDINARY_API_KEY);
+        config.put("api_secret", BuildConfig.CLOUDINARY_API_SECRET);
         this.cloudinary = new Cloudinary(config);
     }
 
-    public void uploadRecipeImage(Uri imageUri, String recipeId, CloudinaryCallback callback) {
+    public void uploadImageToCloudinary(Uri imageUri, String recipeId, CloudinaryCallback callback) {
         new Thread(() -> { // Perform upload in background thread
             try {
                 InputStream inputStream = context.getContentResolver().openInputStream(imageUri);
@@ -36,6 +40,7 @@ public class CloudinaryRepository {
                         "public_id", "recipe_" + recipeId
                 ));
                 String imageUrl = (String) uploadResult.get("secure_url");
+                Log.d("ProfileFragment", "Image uploaded: " + imageUrl);
                 callback.onSuccess(imageUrl);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -44,23 +49,21 @@ public class CloudinaryRepository {
         }).start();
     }
 
-    public void getRecipeImage(String recipeId, CloudinaryCallback callback) {
-        new Thread(() -> { // Perform fetch in background thread
+    public void getImageFromCloudinary(String recipeId, CloudinaryCallback callback) {
+        new Thread(() -> {
             try {
-                ApiResponse result = cloudinary.search()
-                        .expression("folder:recipe_images AND public_id:recipe_" + recipeId)
-                        .execute();
-
-                List<Map> resources = (List<Map>) result.get("resources");
-
-                if (resources != null && !resources.isEmpty()) {
-                    String imageUrl = (String) resources.get(0).get("secure_url");
+                String imageUrl = cloudinary.url().generate("recipe_images/recipe_" + recipeId).replace("http://", "https://");
+                //Attempt to load the image and see if it is there.
+                HttpURLConnection connection = (HttpURLConnection) new URL(imageUrl).openConnection();
+                connection.setRequestMethod("HEAD");
+                int responseCode = connection.getResponseCode();
+                if(responseCode == HttpURLConnection.HTTP_OK){
                     callback.onSuccess(imageUrl);
                 } else {
-                    callback.onError("Image not found");
+                    callback.onSuccess(null);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e("CloudinaryRepository", "Cloudinary get image URL error", e);
                 callback.onError(e.getMessage());
             }
         }).start();
