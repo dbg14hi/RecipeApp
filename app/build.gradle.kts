@@ -65,6 +65,7 @@ dependencies {
     implementation ("androidx.work:work-runtime:2.7.1")
     implementation ("com.cloudinary:cloudinary-android:2.3.1")
     implementation ("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation(libs.androidx.legacy.support.v4)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
