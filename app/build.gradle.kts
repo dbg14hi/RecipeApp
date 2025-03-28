@@ -16,6 +16,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "CLOUDINARY_CLOUD_NAME", "\"${System.getenv("CLOUDINARY_CLOUD_NAME")}\"")
+        buildConfigField("String", "CLOUDINARY_API_KEY", "\"${System.getenv("CLOUDINARY_API_KEY")}\"")
+        buildConfigField("String", "CLOUDINARY_API_SECRET", "\"${System.getenv("CLOUDINARY_API_SECRET")}\"")
     }
 
     buildTypes {
@@ -37,6 +41,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
     viewBinding {
         enable = true
@@ -68,4 +73,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
+    implementation("androidx.camera:camera-camera2:1.3.0")
+    implementation("androidx.camera:camera-lifecycle:1.4.2")
+    implementation("androidx.camera:camera-view:1.4.2")
 }

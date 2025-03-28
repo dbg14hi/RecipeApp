@@ -1,5 +1,7 @@
 package hbv601g.Recipe.entities;
 
+import android.net.Uri;
+
 import java.util.ArrayList;
 import com.google.firebase.Timestamp;
 import java.util.Arrays;
@@ -13,7 +15,7 @@ public class Recipe {
     private int cookingTime;
     private List<String> dietaryRestrictions;
     private List<String> mealCategories;
-    private Timestamp timestamp;  // Add timestamp field
+    private Timestamp timestamp;
     private String userId;
 
 
@@ -89,8 +91,8 @@ public class Recipe {
         }
     }
 
-    public Timestamp getTimestamp() { return timestamp; }  // Getter for timestamp
-    public void setTimestamp(Timestamp timestamp) { this.timestamp = timestamp; }  // Setter for timestamp
+    public Timestamp getTimestamp() { return timestamp; }
+    public void setTimestamp(Timestamp timestamp) { this.timestamp = timestamp; }
 
     @Override
     public String toString() {

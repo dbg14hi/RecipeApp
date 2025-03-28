@@ -12,7 +12,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.CalendarContract;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +41,8 @@ import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -58,6 +62,7 @@ import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.entities.Review;
 import hbv601g.Recipe.fragments.review.NewReviewFragment;
 import hbv601g.Recipe.fragments.review.ReviewAdapter;
+import hbv601g.Recipe.repository.CloudinaryRepository;
 import hbv601g.Recipe.repository.FirestoreRepository;
 import hbv601g.Recipe.ui.notifications.RecipeNotificationWorker;
 import hbv601g.Recipe.utils.PermissionsHelper;
@@ -67,6 +72,10 @@ public class RecipeDetailFragment extends Fragment {
 
     private TextView titleTextView, descriptionTextView, ingredientsTextView, cookingTimeTextView, dietaryRestrictionsTextView, mealCategoriesTextView;
     private ImageButton favoriteButton;
+
+    //Recipe Image
+    private ImageView recipeImageView;
+    private CloudinaryRepository cloudinaryRepository;
 
     private ReviewAdapter reviewAdapter; //Arna
     private List<Review> reviewList; //Arna
@@ -84,6 +93,7 @@ public class RecipeDetailFragment extends Fragment {
 
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         repository = new FirestoreRepository();
+        cloudinaryRepository = new CloudinaryRepository(requireContext());
 
         if (getActivity() != null) {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -101,6 +111,7 @@ public class RecipeDetailFragment extends Fragment {
         dietaryRestrictionsTextView = view.findViewById(R.id.recipe_dietary_restrictions);
         mealCategoriesTextView = view.findViewById(R.id.recipe_meal_categories);
         favoriteButton = view.findViewById(R.id.favoriteButton);
+        recipeImageView = view.findViewById(R.id.recipeImage);
         //Arna
         Button reviewButton; //Arna
         reviewButton = view.findViewById(R.id.reviewButton);//Arna
@@ -135,6 +146,7 @@ public class RecipeDetailFragment extends Fragment {
             favoriteButton.setOnClickListener(v -> toggleFavorite(userId, recipeId));
             reviewButton.setOnClickListener(v -> openReviewFragment());
 
+            displayRecipeImage();
             fetchReviews();
         }
 
@@ -149,6 +161,34 @@ public class RecipeDetailFragment extends Fragment {
         );
 
         return view;
+    }
+
+    private void displayRecipeImage() {
+        cloudinaryRepository.getImageFromCloudinary(recipeId, new CloudinaryRepository.CloudinaryCallback() {
+            @Override
+            public void onSuccess(String imageUrl) {
+                Log.d("RecipeDetailFragment", "Cloudinary Image URL: " + imageUrl);
+                if (imageUrl != null && !imageUrl.isEmpty()) {
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        Glide.with(requireContext())
+                                .load(imageUrl)
+                                .into(recipeImageView);
+                    });
+
+                } else {
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        recipeImageView.setImageResource(R.drawable.ic_launcher_background);
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.e("RecipeDetailFragment", "Failed to load image from Cloudinary: " + errorMessage);
+                Toast.makeText(getContext(), "Failed to load recipe image", Toast.LENGTH_SHORT).show();
+                recipeImageView.setImageResource(R.drawable.ic_launcher_background);
+            }
+        });
     }
 
     private void checkIfFavorite() {
