@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -15,6 +16,8 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import hbv601g.Recipe.R;
 import hbv601g.Recipe.databinding.FragmentFavoritesBinding;
 import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.repository.FirestoreRepository;
@@ -27,8 +30,7 @@ public class FavoritesFragment extends Fragment {
     private FirestoreRepository firestoreRepository;
     private RecyclerView favoritesRecyclerView;
     private List<Recipe> favoriteRecipes;
-    private hbv601g.Recipe.ui.favorites.FavoritesAdapter favoritesAdapter;
-
+    private FavoritesAdapter favoritesAdapter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -44,7 +46,7 @@ public class FavoritesFragment extends Fragment {
         favoritesRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         favoriteRecipes = new ArrayList<>();
-        favoritesAdapter = new FavoritesAdapter(favoriteRecipes, this::removeFromFavorites);
+        favoritesAdapter = new FavoritesAdapter(favoriteRecipes, this::removeFromFavorites, this::navigateToRecipeDetails);
         favoritesRecyclerView.setAdapter(favoritesAdapter);
 
         // Load user's favorites
@@ -59,6 +61,14 @@ public class FavoritesFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    // Navigation to the recipe clicked
+    private void navigateToRecipeDetails(Recipe recipe) {
+        Bundle bundle = new Bundle();
+        bundle.putString("recipeId", recipe.getRecipeId());
+
+        Navigation.findNavController(requireView()).navigate(R.id.action_navigation_favorites_to_recipeDetailFragment, bundle);
     }
 
     // Remove recipe from User favorites

@@ -1,6 +1,5 @@
 package hbv601g.Recipe.ui.favorites;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,17 +15,29 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Favo
 
     private final List<Recipe> favoriteRecipes;
     private final OnRemoveClickListener onRemoveClick;
+    private final OnRecipeClickListener onRecipeClick;
 
-    public FavoritesAdapter(List<Recipe> favoriteRecipes, OnRemoveClickListener onRemoveClick) {
+    // Interface for remove button action
+    public interface OnRemoveClickListener {
+        void onRemoveClick(Recipe recipe);
+    }
+
+    // Interface to link to recipe
+    public interface OnRecipeClickListener {
+        void onRecipeClick(Recipe recipe);
+    }
+
+    public FavoritesAdapter(List<Recipe> favoriteRecipes, OnRemoveClickListener onRemoveClick, OnRecipeClickListener onRecipeClick) {
         this.favoriteRecipes = favoriteRecipes;
         this.onRemoveClick = onRemoveClick;
+        this.onRecipeClick = onRecipeClick;
     }
 
     @Override
     public FavoritesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         ItemFavoriteRecipeBinding binding = ItemFavoriteRecipeBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false);
-        return new FavoritesViewHolder(binding, onRemoveClick);
+        return new FavoritesViewHolder(binding, onRemoveClick, onRecipeClick);
     }
 
     @Override
@@ -52,11 +63,13 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Favo
     static class FavoritesViewHolder extends RecyclerView.ViewHolder {
         private final ItemFavoriteRecipeBinding binding;
         private final OnRemoveClickListener onRemoveClick;
+        private final OnRecipeClickListener onRecipeClick;
 
-        public FavoritesViewHolder(ItemFavoriteRecipeBinding binding, OnRemoveClickListener onRemoveClick) {
+        public FavoritesViewHolder(ItemFavoriteRecipeBinding binding, OnRemoveClickListener onRemoveClick, OnRecipeClickListener onRecipeClick) {
             super(binding.getRoot());
             this.binding = binding;
             this.onRemoveClick = onRemoveClick;
+            this.onRecipeClick = onRecipeClick;
         }
 
         public void bind(Recipe recipe) {
@@ -71,11 +84,8 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.Favo
             binding.removeFavoriteButton.setOnClickListener(
                     v -> onRemoveClick.onRemoveClick(recipe)
             );
-        }
-    }
 
-    // Interface for remove button action
-    public interface OnRemoveClickListener {
-        void onRemoveClick(Recipe recipe);
+            binding.getRoot().setOnClickListener(v -> onRecipeClick.onRecipeClick(recipe));
+        }
     }
 }

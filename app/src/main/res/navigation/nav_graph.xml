@@ -24,7 +24,11 @@
         android:id="@+id/navigation_favorites"
         android:name="hbv601g.Recipe.ui.favorites.FavoritesFragment"
         android:label="Favorites"
-        tools:layout="@layout/fragment_favorites"/>
+        tools:layout="@layout/fragment_favorites">
+        <action
+        android:id="@+id/action_navigation_favorites_to_recipeDetailFragment"
+        app:destination="@id/recipeDetailFragment" />
+    </fragment>
 
     <!-- Notifications Fragment -->
     <fragment

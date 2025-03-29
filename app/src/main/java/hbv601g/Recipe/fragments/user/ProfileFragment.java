@@ -1,25 +1,15 @@
 package hbv601g.Recipe.fragments.user;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.HashMap;;
 import java.util.Map;
-
-import hbv601g.Recipe.entities.Recipe;
-import hbv601g.Recipe.repository.FirestoreRepository;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,7 +29,6 @@ import androidx.navigation.Navigation;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
@@ -48,21 +38,30 @@ import hbv601g.Recipe.services.UserService;
 
 public class ProfileFragment extends Fragment {
 
+    // Firebase
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
+
+    // UI Elements
     private ImageView profileImageView;
     private TextView usernameText, emailText;
-    private Button loginButton, registerButton, logoutButton, changeProfilePicButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
+    private Button loginButton, registerButton, logoutButton;
+    private Button changeProfilePicButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
     private EditText newUsernameField, newEmailField, currentPasswordField, newPasswordField;
+    private LinearLayout loggedInContainer;
+
+    // Services
     private UserService userService;
-    private FirestoreRepository firestoreRepository;
+
+    // Image
     private static final int PICK_IMAGE_REQUEST = 1;
     private Uri imageUri;
 
-    private final String CLOUDINARY_CLOUD_NAME = "dmvi22sp2";
-    private final String CLOUDINARY_API_KEY = "467191768881654";
-    private final String CLOUDINARY_API_SECRET = "J5-uGDut7KJo7EDBEEYlCheEvAI";
+    // Cloudinary Credentials
+    private static final String CLOUDINARY_CLOUD_NAME = "dmvi22sp2";
+    private static final String CLOUDINARY_API_KEY = "467191768881654";
+    private static final String CLOUDINARY_API_SECRET = "J5-uGDut7KJo7EDBEEYlCheEvAI";
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -80,7 +79,6 @@ public class ProfileFragment extends Fragment {
         if (getActivity() != null) {
             userService = new UserService(getActivity());
         }
-        firestoreRepository = new FirestoreRepository();
 
         // Profile Picture Elements
         profileImageView = view.findViewById(R.id.profileImageView);
@@ -99,6 +97,7 @@ public class ProfileFragment extends Fragment {
         currentPasswordField = view.findViewById(R.id.currentPasswordField);
         newPasswordField = view.findViewById(R.id.newPasswordField);
         updatePasswordButton = view.findViewById(R.id.updatePasswordButton);
+        loggedInContainer = view.findViewById(R.id.loggedInContainer);
 
         // Change Profile Picture
         changeProfilePicButton.setOnClickListener(v -> openFileChooser());
@@ -134,19 +133,19 @@ public class ProfileFragment extends Fragment {
         // Update Email
         updateEmailButton.setOnClickListener(v -> {
             String newEmail = newEmailField.getText().toString().trim();
-            String currentPassword = currentPasswordField.getText().toString().trim(); // Add a field for this!
-
+            String currentPassword = currentPasswordField.getText().toString().trim();
             if (newEmail.isEmpty() || currentPassword.isEmpty()) {
                 Toast.makeText(requireContext(), "Please enter your current password and new email", Toast.LENGTH_SHORT).show();
                 return;
             }
             userService.updateEmail(currentPassword, newEmail);
+            updateUI();
         });
 
         // Update Password
         updatePasswordButton.setOnClickListener(v -> {
             String newPassword = newPasswordField.getText().toString().trim();
-            String currentPassword = currentPasswordField.getText().toString().trim(); // Add a field for this!
+            String currentPassword = currentPasswordField.getText().toString().trim();
 
             if (newPassword.isEmpty() || currentPassword.isEmpty()) {
                 Toast.makeText(requireContext(), "Please enter your current password and new password", Toast.LENGTH_SHORT).show();
@@ -158,8 +157,8 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    // Opens the file chooster to pick a new profile picture
     private void openFileChooser() {
-        Log.d("ProfileFragment", "openFileChooser() called");  // ✅ Debugging
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -172,7 +171,6 @@ public class ProfileFragment extends Fragment {
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
             imageUri = data.getData();
-            Log.d("ProfileFragment", "Image selected: " + imageUri.toString());  // ✅ Debugging
             uploadImageToCloudinary();
         } else {
             Log.d("ProfileFragment", "Image selection failed or canceled");
@@ -263,42 +261,18 @@ public class ProfileFragment extends Fragment {
                             });
                     loadProfilePicture();
 
-                    profileImageView.setVisibility(View.VISIBLE);
-                    changeProfilePicButton.setVisibility(View.VISIBLE);
-                    usernameText.setVisibility(View.VISIBLE);
-                    emailText.setVisibility(View.VISIBLE);
-                    newUsernameField.setVisibility(View.VISIBLE);
-                    updateUsernameButton.setVisibility(View.VISIBLE);
-                    newEmailField.setVisibility(View.VISIBLE);
-                    updateEmailButton.setVisibility(View.VISIBLE);
-                    currentPasswordField.setVisibility(View.VISIBLE);
-                    newPasswordField.setVisibility(View.VISIBLE);
-                    updatePasswordButton.setVisibility(View.VISIBLE);
-                    logoutButton.setVisibility(View.VISIBLE);
+                    loggedInContainer.setVisibility(View.VISIBLE);
                     loginButton.setVisibility(View.GONE);
                     registerButton.setVisibility(View.GONE);
-
                 } else {
                     Toast.makeText(requireContext(), "Failed to reload user", Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
             // Not logged in — hide all user-specific views
-            profileImageView.setVisibility(View.GONE);
-            changeProfilePicButton.setVisibility(View.GONE);
-            usernameText.setVisibility(View.GONE);
-            emailText.setVisibility(View.GONE);
-            newUsernameField.setVisibility(View.GONE);
-            updateUsernameButton.setVisibility(View.GONE);
-            newEmailField.setVisibility(View.GONE);
-            updateEmailButton.setVisibility(View.GONE);
-            currentPasswordField.setVisibility(View.GONE);
-            newPasswordField.setVisibility(View.GONE);
-            updatePasswordButton.setVisibility(View.GONE);
-
+            loggedInContainer.setVisibility(View.GONE);
             loginButton.setVisibility(View.VISIBLE);
             registerButton.setVisibility(View.VISIBLE);
-            logoutButton.setVisibility(View.GONE);
         }
     }
 }
