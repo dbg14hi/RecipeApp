@@ -15,6 +15,7 @@ public class Recipe {
     private List<String> mealCategories;
     private Timestamp timestamp;  // Add timestamp field
     private String userId;
+    private String imageUrl;
 
 
     public Recipe() {}
@@ -105,5 +106,9 @@ public class Recipe {
                 ", timestamp=" + timestamp +
                 ", userId='" + userId + '\'' +
                 '}';
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 }
