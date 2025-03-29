@@ -259,12 +259,8 @@ public class ProfileFragment extends Fragment {
                                 if (documentSnapshot.exists()) {
                                     usernameText.setText("Username: " + documentSnapshot.getString("username"));
                                     emailText.setText("Email: " + user.getEmail());
-
-                                    loadProfilePicture();
                                 }
                             });
-
-                    loadUserFavorites(userId);
                     loadProfilePicture();
 
                     profileImageView.setVisibility(View.VISIBLE);
@@ -287,6 +283,7 @@ public class ProfileFragment extends Fragment {
                 }
             });
         } else {
+            // Not logged in — hide all user-specific views
             profileImageView.setVisibility(View.GONE);
             changeProfilePicButton.setVisibility(View.GONE);
             usernameText.setVisibility(View.GONE);
