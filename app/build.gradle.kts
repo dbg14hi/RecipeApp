@@ -62,6 +62,8 @@ dependencies {
     implementation ("com.google.firebase:firebase-firestore:25.1.2")
     implementation ("com.google.firebase:firebase-auth:23.2.0")
     implementation ("androidx.work:work-runtime:2.7.1")
+    implementation ("com.cloudinary:cloudinary-android:2.3.1")
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
