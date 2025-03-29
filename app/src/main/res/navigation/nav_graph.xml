@@ -19,12 +19,16 @@
 
     </fragment>
 
-    <!-- Dashboard Fragment -->
+    <!-- Favorites Fragment -->
     <fragment
-        android:id="@+id/navigation_dashboard"
-        android:name="hbv601g.Recipe.ui.dashboard.DashboardFragment"
-        android:label="Dashboard"
-        tools:layout="@layout/fragment_dashboard"/>
+        android:id="@+id/navigation_favorites"
+        android:name="hbv601g.Recipe.ui.favorites.FavoritesFragment"
+        android:label="Favorites"
+        tools:layout="@layout/fragment_favorites">
+        <action
+        android:id="@+id/action_navigation_favorites_to_recipeDetailFragment"
+        app:destination="@id/recipeDetailFragment" />
+    </fragment>
 
     <!-- Notifications Fragment -->
     <fragment
@@ -105,6 +109,4 @@
         android:name="hbv601g.Recipe.fragments.review.NewReviewFragment"
         android:label="New Review"
         tools:layout="@layout/fragment_review" />
-
-
 </navigation>

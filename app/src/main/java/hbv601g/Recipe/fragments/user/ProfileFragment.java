@@ -1,15 +1,14 @@
 package hbv601g.Recipe.fragments.user;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import java.util.ArrayList;
-import java.util.List;
-import hbv601g.Recipe.ui.home.FavoritesAdapter;
-import hbv601g.Recipe.entities.Recipe;
-import hbv601g.Recipe.repository.FirestoreRepository;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;;
+import java.util.Map;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,39 +16,55 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.EmailAuthProvider;
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.services.UserService;
 
 public class ProfileFragment extends Fragment {
 
+    // Firebase
     private FirebaseAuth auth;
     private FirebaseFirestore db;
-    private TextView usernameText, emailText, noFavoritesText;
-    private Button loginButton, registerButton, logoutButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
-    private EditText newUsernameField, newEmailText, newPasswordText;
+    private FirebaseUser currentUser;
+
+    // UI Elements
+    private ImageView profileImageView;
+    private TextView usernameText, emailText;
+    private Button loginButton, registerButton, logoutButton;
+    private Button changeProfilePicButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
+    private EditText newUsernameField, newEmailField, currentPasswordField, newPasswordField;
+    private LinearLayout loggedInContainer;
+
+    // Services
     private UserService userService;
 
-    private LoginFragment loginFragment; //skoða
+    // Image
+    private static final int PICK_IMAGE_REQUEST = 1;
+    private Uri imageUri;
 
-    private RecyclerView favoritesRecyclerView;
-    private FavoritesAdapter favoritesAdapter;
-    private List<Recipe> favoriteRecipes;
-    private FirestoreRepository firestoreRepository;
+    // Cloudinary Credentials
+    private static final String CLOUDINARY_CLOUD_NAME = "dmvi22sp2";
+    private static final String CLOUDINARY_API_KEY = "467191768881654";
+    private static final String CLOUDINARY_API_SECRET = "J5-uGDut7KJo7EDBEEYlCheEvAI";
 
     public ProfileFragment() {
+        // Required empty public constructor
     }
 
     @SuppressLint("MissingInflatedId")
@@ -60,63 +75,51 @@ public class ProfileFragment extends Fragment {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-        userService = new UserService(requireActivity());
-        firestoreRepository = new FirestoreRepository();
 
-        // 🔹 Initialize UI Elements
+        if (getActivity() != null) {
+            userService = new UserService(getActivity());
+        }
+
+        // Profile Picture Elements
+        profileImageView = view.findViewById(R.id.profileImageView);
+        changeProfilePicButton = view.findViewById(R.id.changeProfilePicButton);
+
+        // Initialize UI Elements
         usernameText = view.findViewById(R.id.usernameText);
         emailText = view.findViewById(R.id.emailText);
-        noFavoritesText = view.findViewById(R.id.noFavoritesText);
         loginButton = view.findViewById(R.id.loginButton);
         registerButton = view.findViewById(R.id.registerButton);
         logoutButton = view.findViewById(R.id.logoutButton);
         newUsernameField = view.findViewById(R.id.newUsernameField);
         updateUsernameButton = view.findViewById(R.id.updateUsernameButton);
-        newEmailText = view.findViewById(R.id.newEmailText);
+        newEmailField = view.findViewById(R.id.newEmailField);
         updateEmailButton = view.findViewById(R.id.updateEmailButton);
-        newPasswordText = view.findViewById(R.id.newPasswordText);
+        currentPasswordField = view.findViewById(R.id.currentPasswordField);
+        newPasswordField = view.findViewById(R.id.newPasswordField);
         updatePasswordButton = view.findViewById(R.id.updatePasswordButton);
+        loggedInContainer = view.findViewById(R.id.loggedInContainer);
 
+        // Change Profile Picture
+        changeProfilePicButton.setOnClickListener(v -> openFileChooser());
+        profileImageView.setOnClickListener(v -> openFileChooser());
 
-        //
-        updateEmailButton.setOnClickListener(v -> updateEmail());
-        updatePasswordButton.setOnClickListener(v -> updatePassword());
-
-        // 🔹 Initialize RecyclerView for Favorites
-        favoritesRecyclerView = view.findViewById(R.id.favoritesRecyclerView);
-        favoritesRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-        favoriteRecipes = new ArrayList<>();
-        favoritesAdapter = new FavoritesAdapter(favoriteRecipes, recipe -> {
-            Toast.makeText(requireContext(), "Clicked on: " + recipe.getTitle(), Toast.LENGTH_SHORT).show();
-            return null;
-        });
-        favoritesRecyclerView.setAdapter(favoritesAdapter);
-
-        // 🔹 Update UI when fragment is opened
-        auth.addAuthStateListener(firebaseAuth -> {
-            updateUI();
-            FirebaseUser user = auth.getCurrentUser();
-            if (user != null) {
-                loadUserFavorites(user.getUid());
-            }
-        });
-
-
-        // 🔹 Navigate to Login
+        // Navigate to Login
         loginButton.setOnClickListener(v ->
                 Navigation.findNavController(view).navigate(R.id.action_navigation_profile_to_loginFragment)
         );
 
-        // 🔹 Navigate to Register
+        // Navigate to Register
         registerButton.setOnClickListener(v ->
                 Navigation.findNavController(view).navigate(R.id.action_navigation_profile_to_signUpFragment)
         );
 
-        // 🔹 Logout
+        // Update UI when fragment is opened
+        auth.addAuthStateListener(firebaseAuth -> updateUI());
+
+        // Logout
         logoutButton.setOnClickListener(v -> userService.logoutUser());
 
-        // 🔹 Update Username
+        // Update Username
         updateUsernameButton.setOnClickListener(v -> {
             String newUsername = newUsernameField.getText().toString().trim();
 
@@ -124,238 +127,153 @@ public class ProfileFragment extends Fragment {
                 Toast.makeText(requireContext(), "Please enter a new username", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             userService.updateUsername(newUsername);
+        });
+
+        // Update Email
+        updateEmailButton.setOnClickListener(v -> {
+            String newEmail = newEmailField.getText().toString().trim();
+            String currentPassword = currentPasswordField.getText().toString().trim();
+            if (newEmail.isEmpty() || currentPassword.isEmpty()) {
+                Toast.makeText(requireContext(), "Please enter your current password and new email", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            userService.updateEmail(currentPassword, newEmail);
+            updateUI();
+        });
+
+        // Update Password
+        updatePasswordButton.setOnClickListener(v -> {
+            String newPassword = newPasswordField.getText().toString().trim();
+            String currentPassword = currentPasswordField.getText().toString().trim();
+
+            if (newPassword.isEmpty() || currentPassword.isEmpty()) {
+                Toast.makeText(requireContext(), "Please enter your current password and new password", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            userService.updatePassword(currentPassword, newPassword);
         });
 
         return view;
     }
 
-    private void updateEmail() {
-        FirebaseUser user = auth.getCurrentUser();
-        String newEmail = newEmailText.getText().toString().trim();
-        String currentPassword = "USER_CURRENT_PASSWORD";
+    // Opens the file chooster to pick a new profile picture
+    private void openFileChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
 
-        if (user == null || newEmail.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter a valid email", Toast.LENGTH_SHORT).show();
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+            imageUri = data.getData();
+            uploadImageToCloudinary();
+        } else {
+            Log.d("ProfileFragment", "Image selection failed or canceled");
+        }
+    }
+
+    private void uploadImageToCloudinary() {
+        if (imageUri == null) {
+            Log.e("ProfileFragment", "uploadImageToCloudinary: No image URI found");
             return;
         }
 
-        EditText passwordInput = new EditText(requireContext());
-        passwordInput.setHint("Enter current password");
+        Log.d("ProfileFragment", "Uploading image to Cloudinary...");
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Re-authentication Required")
-                .setMessage("Please enter your current password to proceed.")
-                .setView(passwordInput)
-                .setPositiveButton("Confirm", (dialog, which) -> {
-                    String password = passwordInput.getText().toString().trim();
-                    if (password.isEmpty()) {
-                        Toast.makeText(requireContext(), "Password cannot be empty", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+        try {
+            InputStream inputStream = getActivity().getContentResolver().openInputStream(imageUri);
+            byte[] imageBytes = new byte[inputStream.available()];
+            inputStream.read(imageBytes);
+            inputStream.close();
 
-                    AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
+            Map config = new HashMap();
+            config.put("cloud_name", CLOUDINARY_CLOUD_NAME);
+            config.put("api_key", CLOUDINARY_API_KEY);
+            config.put("api_secret", CLOUDINARY_API_SECRET);
 
-                    user.reauthenticate(credential).addOnCompleteListener(authTask -> {
-                        if (authTask.isSuccessful()) {
+            Cloudinary cloudinary = new Cloudinary(config);
 
-                            user.updateEmail(newEmail)
-                                    .addOnCompleteListener(task -> {
-                                        if (task.isSuccessful()) {
-                                            Log.d("ProfileUpdate", "Email updated to: " + newEmail);
+            new Thread(() -> {
+                try {
+                    Map uploadResult = cloudinary.uploader().upload(imageBytes, ObjectUtils.asMap("folder", "profile_pictures"));
+                    String imageUrl = (String) uploadResult.get("secure_url");
 
-                                            db.collection("users").document(user.getUid())
-                                                    .update("email", newEmail)
-                                                    .addOnSuccessListener(aVoid ->
-                                                            Toast.makeText(requireContext(), "Email updated successfully!", Toast.LENGTH_SHORT).show())
-                                                    .addOnFailureListener(e ->
-                                                            Log.e("Firestore", "Error updating Firestore email", e));
+                    Log.d("ProfileFragment", "Image uploaded: " + imageUrl);  // ✅ Debugging
+                    saveImageUrlToFirestore(imageUrl);
+                } catch (Exception e) {
+                    Log.e("ProfileFragment", "Cloudinary upload failed", e);
+                }
+            }).start();
 
-                                        } else {
-                                            Toast.makeText(requireContext(), "Failed to update email: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                                            Log.e("ProfileUpdate", "Error updating email", task.getException());
-                                        }
-                                    });
-                        } else {
-                            Toast.makeText(requireContext(), "Re-authentication failed: " + authTask.getException().getMessage(), Toast.LENGTH_LONG).show();
-                            Log.e("AuthError", "Re-authentication failed", authTask.getException());
-                        }
-                    });
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .show();
-    }
-
-    private void updatePassword() {
-        FirebaseUser user = auth.getCurrentUser();
-        String newPassword = newPasswordText.getText().toString().trim();
-
-        if (user == null || newPassword.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter a valid password", Toast.LENGTH_SHORT).show();
-            return;
+        } catch (IOException e) {
+            Log.e("ProfileFragment", "Error reading image file", e);
         }
-
-        EditText passwordInput = new EditText(requireContext());
-        passwordInput.setHint("Enter current password");
-
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Re-authentication Required")
-                .setMessage("Please enter your current password to proceed.")
-                .setView(passwordInput)
-                .setPositiveButton("Confirm", (dialog, which) -> {
-                    String currentPassword = passwordInput.getText().toString().trim();
-                    if (currentPassword.isEmpty()) {
-                        Toast.makeText(requireContext(), "Current password cannot be empty", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPassword);
-
-                    user.reauthenticate(credential).addOnCompleteListener(authTask -> {
-                        if (authTask.isSuccessful()) {
-                            user.updatePassword(newPassword)
-                                    .addOnCompleteListener(task -> {
-                                        if (task.isSuccessful()) {
-                                            Log.d("ProfileUpdate", "Password updated successfully");
-
-                                            Toast.makeText(requireContext(), "Password updated successfully!", Toast.LENGTH_SHORT).show();
-                                        } else {
-                                            Toast.makeText(requireContext(), "Failed to update password: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                                            Log.e("ProfileUpdate", "Error updating password", task.getException());
-                                        }
-                                    });
-                        } else {
-                            Toast.makeText(requireContext(), "Re-authentication failed: " + authTask.getException().getMessage(), Toast.LENGTH_LONG).show();
-                            Log.e("AuthError", "Re-authentication failed", authTask.getException());
-                        }
-                    });
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .show();
     }
 
+    private void saveImageUrlToFirestore(String imageUrl) {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
 
+        db.collection("users").document(user.getUid())
+                .update("profileImage", imageUrl)
+                .addOnSuccessListener(aVoid -> {
+                    getActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(), "Profile Picture Updated!", Toast.LENGTH_SHORT).show();
+                        loadProfilePicture();
+                    });
+                });
+    }
 
-    // 🔹 Update UI based on login state
+    private void loadProfilePicture() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        db.collection("users").document(user.getUid()).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists() && documentSnapshot.contains("profileImage")) {
+                String imageUrl = documentSnapshot.getString("profileImage");
+                if (imageUrl != null && !imageUrl.isEmpty()) {
+                    Glide.with(getActivity()).load(imageUrl).into(profileImageView);
+                }
+            }
+        });
+    }
+
+    // Update UI based on login state
     private void updateUI() {
         FirebaseUser user = auth.getCurrentUser();
+
         if (user != null) {
             String userId = user.getUid();
 
-            db.collection("users").document(userId).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            usernameText.setText("Username: " + documentSnapshot.getString("username"));
-                            emailText.setText("Email: " + documentSnapshot.getString("email"));
-                        }
-                    });
+            user.reload().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    db.collection("users").document(userId).get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    usernameText.setText("Username: " + documentSnapshot.getString("username"));
+                                    emailText.setText("Email: " + user.getEmail());
+                                }
+                            });
+                    loadProfilePicture();
 
-            // 🔹 Fetch user's favorite recipes
-            loadUserFavorites(userId);
-
-            // 🔹 Show profile elements
-            usernameText.setVisibility(View.VISIBLE);
-            emailText.setVisibility(View.VISIBLE);
-            loginButton.setVisibility(View.GONE);
-            registerButton.setVisibility(View.GONE);
-            logoutButton.setVisibility(View.VISIBLE);
-            newUsernameField.setVisibility(View.VISIBLE);
-            updateUsernameButton.setVisibility(View.VISIBLE);
-            newEmailText.setVisibility(View.VISIBLE);
-            updateEmailButton.setVisibility(View.VISIBLE);
-            newPasswordText.setVisibility(View.VISIBLE);
-            updatePasswordButton.setVisibility(View.VISIBLE);
+                    loggedInContainer.setVisibility(View.VISIBLE);
+                    loginButton.setVisibility(View.GONE);
+                    registerButton.setVisibility(View.GONE);
+                } else {
+                    Toast.makeText(requireContext(), "Failed to reload user", Toast.LENGTH_SHORT).show();
+                }
+            });
         } else {
-            // 🔹 Hide favorites when logged out
-            favoritesRecyclerView.setVisibility(View.GONE);
-
-            // 🔹 Show login/register elements
-            usernameText.setVisibility(View.GONE);
-            emailText.setVisibility(View.GONE);
+            // Not logged in — hide all user-specific views
+            loggedInContainer.setVisibility(View.GONE);
             loginButton.setVisibility(View.VISIBLE);
             registerButton.setVisibility(View.VISIBLE);
-            logoutButton.setVisibility(View.GONE);
-            newUsernameField.setVisibility(View.GONE);
-            updateUsernameButton.setVisibility(View.GONE);
-            newEmailText.setVisibility(View.GONE);
-            updateEmailButton.setVisibility(View.GONE);
-            newPasswordText.setVisibility(View.GONE);
-            updatePasswordButton.setVisibility(View.GONE);
         }
     }
-
-    private void removeFromFavorites(Recipe recipe) {
-        String userId = auth.getCurrentUser().getUid();
-        if (userId == null) {
-            Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        DocumentReference userRef = db.collection("users").document(userId);
-
-        userRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                List<String> favorites = (List<String>) documentSnapshot.get("favorites");
-                if (favorites != null && favorites.contains(recipe.getRecipeId())) {
-                    favorites.remove(recipe.getRecipeId());
-
-                    // 🔹 Update Firestore
-                    userRef.update("favorites", favorites)
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(requireContext(), "Removed from favorites", Toast.LENGTH_SHORT).show();
-
-                                // 🔹 Remove from local list & update RecyclerView
-                                favoritesAdapter.removeRecipe(recipe);
-                            })
-                            .addOnFailureListener(e ->
-                                    Toast.makeText(requireContext(), "Failed to remove favorite", Toast.LENGTH_SHORT).show());
-                }
-            }
-        }).addOnFailureListener(e ->
-                Log.e("Favorites", "Error removing favorite", e));
-    }
-
-    // 🔹 Fetch and display favorite recipes
-    private void loadUserFavorites(String userId) {
-        db.collection("users").document(userId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        List<String> favoriteRecipeIds = (List<String>) documentSnapshot.get("userFavourites");
-
-                        if (favoriteRecipeIds == null || favoriteRecipeIds.isEmpty()) {
-                            Log.d("Favorites", "No favorites found.");
-                            favoritesRecyclerView.setVisibility(View.GONE);
-                            return;
-                        }
-
-                        Log.d("Favorites", "Favorite Recipe IDs: " + favoriteRecipeIds); // Debugging log
-
-                        firestoreRepository.getRecipesByIds(favoriteRecipeIds, new FirestoreRepository.RecipeCallback() {
-                            @Override
-                            public void onRecipesLoaded(List<Recipe> recipes) {
-                                favoriteRecipes.clear();
-                                favoriteRecipes.addAll(recipes);
-                                favoritesAdapter.notifyDataSetChanged();
-
-                                if (!favoriteRecipes.isEmpty()) {
-                                    favoritesRecyclerView.setVisibility(View.VISIBLE);
-                                } else {
-                                    favoritesRecyclerView.setVisibility(View.GONE);
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(Exception e) {
-                                Log.e("Favorites", "Failed to fetch favorite recipes", e);
-                                Toast.makeText(requireContext(), "Failed to load favorites", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-                })
-                .addOnFailureListener(e -> Log.e("Favorites", "Failed to fetch user data", e));
-    }
-
-
-
 }
+

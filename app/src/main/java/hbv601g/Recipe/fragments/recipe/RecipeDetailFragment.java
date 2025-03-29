@@ -127,7 +127,13 @@ public class RecipeDetailFragment extends Fragment {
 
             titleTextView.setText(title);
             descriptionTextView.setText(description);
-            ingredientsTextView.setText(TextUtils.join(", ", ingredients));
+            if (ingredients != null && !ingredients.isEmpty()) {
+                Log.d("RecipeDetail", "Ingredients: " + ingredients);
+                ingredientsTextView.setText(TextUtils.join(", ", ingredients));
+            } else {
+                ingredientsTextView.setText("No ingredients listed");
+            }
+
             cookingTimeTextView.setText("Cooking Time: " + cookingTime + " minutes");
 
             checkIfFavorite();
@@ -215,13 +221,17 @@ public class RecipeDetailFragment extends Fragment {
 
     // Function to update UI state
     private void updateFavoriteButtonUI(boolean isFavorited) {
-        if (isFavorited) {
-            favoriteButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.favorite_active));
-        } else {
-            favoriteButton.setColorFilter(ContextCompat.getColor(getContext(), R.color.favorite_inactive));
-        }
-        updateFavoriteIcon(isFavorite);
+        if (!isAdded() || getView() == null) return;
+
+        Context context = getContext();
+        if (context == null || favoriteButton == null) return;
+
+        int color = isFavorited ? R.color.favorite_active : R.color.favorite_inactive;
+        favoriteButton.setColorFilter(ContextCompat.getColor(context, color));
+
+        updateFavoriteIcon(isFavorited);
     }
+
 
     private void updateFavoriteIcon(boolean isFavorite) {
         favoriteButton.setImageResource(isFavorite ? R.drawable.ic_heart_filled : R.drawable.ic_heart_empty);
