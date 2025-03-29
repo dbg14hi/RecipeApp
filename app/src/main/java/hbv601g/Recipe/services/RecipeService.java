@@ -8,7 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 public class RecipeService {
     private final FirebaseAuth auth;
     private final FirebaseFirestore db;
-    private final FragmentActivity activity; // Replace Context with FragmentActivity for Navigation
+    private final FragmentActivity activity;
 
     public RecipeService(FragmentActivity activity) {
         this.auth = FirebaseAuth.getInstance();

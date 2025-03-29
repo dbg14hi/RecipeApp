@@ -39,6 +39,7 @@ public class NewReviewFragment extends Fragment {
         return view;
     }
 
+
     private void submitReview() {
         String comment = commentEditText.getText().toString();
         int rating = (int) ratingBar.getRating();

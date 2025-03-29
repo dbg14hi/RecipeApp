@@ -119,6 +119,7 @@ public class CreateRecipeFragment extends Fragment {
 
         List<String> ingredients = Arrays.asList(ingredientsText.split("\\s*,\\s*"));
 
+
         int cookingTime;
         try {
             cookingTime = Integer.parseInt(cookingTimeStr);
@@ -128,6 +129,7 @@ public class CreateRecipeFragment extends Fragment {
         }
 
         String userId = auth.getCurrentUser().getUid();
+
 
         Map<String, Object> recipe = new HashMap<>();
         recipe.put("title", title);

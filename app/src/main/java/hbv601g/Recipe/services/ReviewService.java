@@ -24,8 +24,17 @@ public class ReviewService {
             return;
         }
 
-        review.setUserId(user.getUid()); // Ensure user ID is set
-        db.collection("reviews").add(review)
+        if (review.getRecipeId() == null || review.getRecipeId().isEmpty()) {
+            listener.onFailure("Recipe ID is missing.");
+            return;
+        }
+
+        review.setUserId(user.getUid());
+
+        db.collection("recipes")
+                .document(review.getRecipeId())
+                .collection("reviews")
+                .add(review)
                 .addOnSuccessListener(documentReference -> {
                     Log.d("Firestore", "Review added with ID: " + documentReference.getId());
                     listener.onSuccess(documentReference.getId());
@@ -35,6 +44,7 @@ public class ReviewService {
                     listener.onFailure(e.getMessage());
                 });
     }
+
 
     public interface OnReviewAddedListener {
         void onSuccess(String reviewId);
