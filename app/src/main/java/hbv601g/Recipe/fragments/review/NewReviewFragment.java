@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RatingBar;
 import android.widget.Toast;
@@ -17,19 +16,30 @@ import hbv601g.Recipe.R;
 import hbv601g.Recipe.entities.Review;
 import hbv601g.Recipe.services.ReviewService;
 
+/**
+ * A fragment that allows users to submit a new review for a recipe.
+ */
 public class NewReviewFragment extends Fragment {
 
     private RatingBar ratingBar;
     private EditText commentEditText;
     private ReviewService reviewService;
 
+    /**
+     * Called to create the fragment's view.
+     *
+     * @param inflater  The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The created view for the fragment.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_review, container, false);
 
-        reviewService = new ReviewService(); // Initialize ReviewService
+        reviewService = new ReviewService();
         ratingBar = view.findViewById(R.id.ratingBar);
         commentEditText = view.findViewById(R.id.commentEditText);
 
@@ -39,7 +49,10 @@ public class NewReviewFragment extends Fragment {
         return view;
     }
 
-
+    /**
+     * Handles the submission of a new review.
+     * Validates input fields and sends the review data to the ReviewService.
+     */
     private void submitReview() {
         String comment = commentEditText.getText().toString();
         int rating = (int) ratingBar.getRating();
@@ -68,5 +81,4 @@ public class NewReviewFragment extends Fragment {
             Toast.makeText(getContext(), "Please enter a comment and rating", Toast.LENGTH_SHORT).show();
         }
     }
-
 }

@@ -70,8 +70,8 @@ import hbv601g.Recipe.utils.RecipeScheduler;
 public class RecipeDetailFragment extends Fragment {
     private TextView titleTextView, descriptionTextView, ingredientsTextView, cookingTimeTextView, dietaryRestrictionsTextView, mealCategoriesTextView;
     private ImageButton favoriteButton;
-    private ReviewAdapter reviewAdapter; //Arna
-    private List<Review> reviewList; //Arna
+    private ReviewAdapter reviewAdapter;
+    private List<Review> reviewList;
     private FirestoreRepository repository;
     private String userId, recipeId;
     private boolean isFavorite = false;
@@ -98,11 +98,9 @@ public class RecipeDetailFragment extends Fragment {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // Request necessary permissions and set up the schedule button.
         PermissionsHelper.requestNecessaryPermissions(this);
         setupScheduleButton();
 
-        // Initialize UI elements
         titleTextView = view.findViewById(R.id.recipe_title);
         descriptionTextView = view.findViewById(R.id.recipe_description);
         ingredientsTextView = view.findViewById(R.id.recipe_ingredients);
@@ -116,8 +114,8 @@ public class RecipeDetailFragment extends Fragment {
         reviewRecyclerView = view.findViewById(R.id.reviewRecyclerView);
         reviewRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         reviewList = new ArrayList<>(); //Arna
-        reviewAdapter = new ReviewAdapter(reviewList); //Arna
-        reviewRecyclerView.setAdapter(reviewAdapter); //Arna
+        reviewAdapter = new ReviewAdapter(reviewList);
+        reviewRecyclerView.setAdapter(reviewAdapter);
 
         Bundle args = getArguments();
         if (args != null) {
@@ -210,7 +208,6 @@ public class RecipeDetailFragment extends Fragment {
                     isFavorite = true;
                 }
 
-                // Update Firestore and UI **only if Firestore update is successful**
                 userRef.update("favorites", favorites)
                         .addOnSuccessListener(aVoid -> {
                             Log.d("Favorites", "Updated successfully");
@@ -219,7 +216,6 @@ public class RecipeDetailFragment extends Fragment {
                         .addOnFailureListener(e -> Log.e("Favorites", "Error updating", e));
 
             } else {
-                // If user doc doesn't exist, create it and add favorite
                 Map<String, Object> userData = new HashMap<>();
                 userData.put("favorites", Arrays.asList(recipeId));
 

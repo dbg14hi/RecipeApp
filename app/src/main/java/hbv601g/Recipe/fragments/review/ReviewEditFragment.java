@@ -18,13 +18,20 @@ import hbv601g.Recipe.R;
 import hbv601g.Recipe.entities.Review;
 import hbv601g.Recipe.ui.home.ReviewViewModel;
 
+/**
+ * Fragment for ediding reviews
+ */
 public class ReviewEditFragment extends Fragment {
-
     private ReviewViewModel viewModel;
     private RatingBar ratingBar;
     private EditText commentEditText;
     private String reviewId;
 
+    /**
+     * This is called when the fragment is first created
+     * @param savedInstanceState If the fragment is being re-created from
+     * a previous saved state, this is the state.
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +40,19 @@ public class ReviewEditFragment extends Fragment {
         }
     }
 
+    /**
+     * Called to create and return the view
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate
+     * any views in the fragment,
+     * @param container If non-null, this is the parent view that the fragment's
+     * UI should be attached to.  The fragment should not add the view itself,
+     * but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     *
+     * @return
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -53,6 +73,9 @@ public class ReviewEditFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Loads the ReviewData
+     */
     private void loadReviewData() {
         viewModel.loadReviewById(reviewId); // 🔔 This is the correct method now!
 
@@ -72,6 +95,9 @@ public class ReviewEditFragment extends Fragment {
         });
     }
 
+    /**
+     * Updates the Review
+     */
     private void updateReview() {
         String comment = commentEditText.getText().toString();
         int rating = (int) ratingBar.getRating();
@@ -87,6 +113,9 @@ public class ReviewEditFragment extends Fragment {
         }
     }
 
+    /**
+     * Deletes the review
+     */
     private void deleteReview() {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Review")

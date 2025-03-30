@@ -39,8 +39,6 @@ public class CreateRecipeFragment extends Fragment {
     private EditText titleInput, descriptionInput, ingredientsInput, cookingTimeInput;
     private LinearLayout dietaryRestrictionsContainer, mealCategoriesContainer;
     private Button submitRecipeButton;
-
-    // Lists of dietary restrictions and meal categories
     private final List<String> allDietaryRestrictions = Arrays.asList("Nut-free", "Vegan", "Vegetarian", "Gluten-free", "Dairy-free");
     private final List<String> allMealCategories = Arrays.asList("Breakfast", "Lunch", "Dinner", "Snacks");
 
@@ -64,7 +62,6 @@ public class CreateRecipeFragment extends Fragment {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // Initialize UI components
         titleInput = view.findViewById(R.id.titleInput);
         descriptionInput = view.findViewById(R.id.descriptionInput);
         ingredientsInput = view.findViewById(R.id.ingredientsInput);
@@ -73,24 +70,20 @@ public class CreateRecipeFragment extends Fragment {
         mealCategoriesContainer = view.findViewById(R.id.mealCategoriesContainer);
         submitRecipeButton = view.findViewById(R.id.submitRecipeButton);
 
-        // Populate checkboxes for dietary restrictions
         for (String restriction : allDietaryRestrictions) {
             CheckBox checkBox = new CheckBox(this.getContext());
             checkBox.setText(restriction);
             dietaryRestrictionsContainer.addView(checkBox);
         }
 
-        // Populate checkboxes for meal categories
         for (String category : allMealCategories) {
             CheckBox checkBox = new CheckBox(this.getContext());
             checkBox.setText(category);
             mealCategoriesContainer.addView(checkBox);
         }
 
-        // Set click listener for the submit button
         submitRecipeButton.setOnClickListener(v -> createRecipe());
 
-        // Handle back press navigation
         requireActivity().getOnBackPressedDispatcher().addCallback(
                 getViewLifecycleOwner(),
                 new OnBackPressedCallback(true) {
@@ -113,7 +106,6 @@ public class CreateRecipeFragment extends Fragment {
         String ingredientsText = ingredientsInput.getText().toString().trim();
         String cookingTimeStr = cookingTimeInput.getText().toString().trim();
 
-        // Collect selected dietary restrictions
         List<String> selectedDietaryRestrictions = new ArrayList<>();
         for (int i = 0; i < dietaryRestrictionsContainer.getChildCount(); i++) {
             CheckBox checkBox = (CheckBox) dietaryRestrictionsContainer.getChildAt(i);
@@ -122,7 +114,6 @@ public class CreateRecipeFragment extends Fragment {
             }
         }
 
-        // Collect selected meal categories
         List<String> selectedMealCategories = new ArrayList<>();
         for (int i = 0; i < mealCategoriesContainer.getChildCount(); i++) {
             CheckBox checkBox = (CheckBox) mealCategoriesContainer.getChildAt(i);
@@ -131,7 +122,6 @@ public class CreateRecipeFragment extends Fragment {
             }
         }
 
-        // Validate user input
         if (title.isEmpty() || description.isEmpty() || ingredientsText.isEmpty() || cookingTimeStr.isEmpty()) {
             Toast.makeText(getContext(), "All fields are required!", Toast.LENGTH_SHORT).show();
             return;
@@ -139,7 +129,6 @@ public class CreateRecipeFragment extends Fragment {
 
         List<String> ingredients = Arrays.asList(ingredientsText.split("\\s*,\\s*"));
 
-        // Parse cooking time
         int cookingTime;
         try {
             cookingTime = Integer.parseInt(cookingTimeStr);
@@ -148,10 +137,8 @@ public class CreateRecipeFragment extends Fragment {
             return;
         }
 
-        // Get current user ID
         String userId = auth.getCurrentUser().getUid();
 
-        // Create recipe data object
         Map<String, Object> recipe = new HashMap<>();
         recipe.put("title", title);
         recipe.put("description", description);
@@ -162,17 +149,14 @@ public class CreateRecipeFragment extends Fragment {
         recipe.put("timestamp", FieldValue.serverTimestamp());
         recipe.put("userId", userId);
 
-        // Add recipe to Firestore
         db.collection("recipes").add(recipe)
                 .addOnSuccessListener(documentReference -> {
                     String recipeId = documentReference.getId();
 
-                    // Update the recipe with its generated ID
                     documentReference.update("recipeId", recipeId)
                             .addOnSuccessListener(aVoid -> {
                                 Toast.makeText(getContext(), "Recipe added!", Toast.LENGTH_SHORT).show();
 
-                                // Navigate back to HomeFragment
                                 NavHostFragment.findNavController(CreateRecipeFragment.this)
                                         .navigate(R.id.action_createRecipeFragment_to_navigation_home);
                             })
