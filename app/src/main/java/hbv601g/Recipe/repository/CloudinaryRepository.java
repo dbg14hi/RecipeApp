@@ -32,6 +32,10 @@ public class CloudinaryRepository {
     }
 
     public void uploadImageToCloudinary(Uri imageUri, String recipeId, CloudinaryCallback callback) {
+        Log.d("CloudinaryRepository", "Cloud Name: " + BuildConfig.CLOUDINARY_CLOUD_NAME);
+        Log.d("CloudinaryRepository", "API Key: " + BuildConfig.CLOUDINARY_API_KEY);
+        Log.d("CloudinaryRepository", "API Secret: " + BuildConfig.CLOUDINARY_API_SECRET);
+
         new Thread(() -> { // Perform upload in background thread
             try {
                 InputStream inputStream = context.getContentResolver().openInputStream(imageUri);

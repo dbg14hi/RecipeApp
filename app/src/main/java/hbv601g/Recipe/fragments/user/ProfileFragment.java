@@ -1,21 +1,26 @@
 package hbv601g.Recipe.fragments.user;
 
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import hbv601g.Recipe.repository.CloudinaryRepository;
 import hbv601g.Recipe.ui.home.FavoritesAdapter;
 import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.repository.FirestoreRepository;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -28,21 +33,28 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.Manifest;
+
+import android.content.pm.PackageManager;
+
+import android.os.Environment;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import androidx.appcompat.app.AlertDialog;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
+
 
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.services.UserService;
@@ -62,12 +74,9 @@ public class ProfileFragment extends Fragment {
     private FavoritesAdapter favoritesAdapter;
     private List<Recipe> favoriteRecipes;
     private FirestoreRepository firestoreRepository;
-    private static final int PICK_IMAGE_REQUEST = 1;
-    private Uri imageUri;
-
-    private final String CLOUDINARY_CLOUD_NAME = "dmvi22sp2";
-    private final String CLOUDINARY_API_KEY = "467191768881654";
-    private final String CLOUDINARY_API_SECRET = "J5-uGDut7KJo7EDBEEYlCheEvAI";
+    private CloudinaryRepository cloudinaryRepository;
+    private Uri profileImageUri;
+    private WeakReference<AlertDialog> dialogRef;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -81,6 +90,7 @@ public class ProfileFragment extends Fragment {
 
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        cloudinaryRepository = new CloudinaryRepository(requireContext());
 
         if (getActivity() != null) {
             userService = new UserService(getActivity());
@@ -124,8 +134,7 @@ public class ProfileFragment extends Fragment {
         loadProfilePicture();
 
         // 🔹 Change Profile Picture
-        changeProfilePicButton.setOnClickListener(v -> openFileChooser());
-        profileImageView.setOnClickListener(v -> openFileChooser());
+        changeProfilePicButton.setOnClickListener(v -> showImagePickerDialog());
 
         // 🔹 Update UI when fragment is opened
         auth.addAuthStateListener(firebaseAuth -> {
@@ -200,65 +209,125 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
-    private void openFileChooser() {
-        Log.d("ProfileFragment", "openFileChooser() called");  // ✅ Debugging
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    private void showImagePickerDialog() {
+        if (getActivity() == null || !isAdded()) return;
+
+        String[] options = {"Take Photo", "Choose from Gallery", "Cancel"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Add Photo");
+        builder.setItems(options, (dialog, which) -> {
+            if (which == 0) {
+                requestCameraPermission();
+            } else if (which == 1) {
+                pickImageFromGallery();
+            } else {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialogRef = new WeakReference<>(dialog);
+
+        if (getActivity() != null && !getActivity().isFinishing()) {
+            dialog.show();
+        }
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
-            imageUri = data.getData();
-            Log.d("ProfileFragment", "Image selected: " + imageUri.toString());  // ✅ Debugging
-            uploadImageToCloudinary();
+    private void requestCameraPermission() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            takePhoto();
+        } else if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+            showPermissionRationaleDialog();
         } else {
-            Log.d("ProfileFragment", "Image selection failed or canceled");
+            requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
     }
 
-    private void uploadImageToCloudinary() {
-        if (imageUri == null) {
-            Log.e("ProfileFragment", "uploadImageToCloudinary: No image URI found");
-            return;
-        }
+    private void takePhoto() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        profileImageUri = requireContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, profileImageUri);
+        takePictureLauncher.launch(takePictureIntent);
+    }
 
-        Log.d("ProfileFragment", "Uploading image to Cloudinary...");
+    private void pickImageFromGallery() {
+        Intent pickImageIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        pickImageLauncher.launch(pickImageIntent);
+    }
 
-        try {
-            InputStream inputStream = getActivity().getContentResolver().openInputStream(imageUri);
-            byte[] imageBytes = new byte[inputStream.available()];
-            inputStream.read(imageBytes);
-            inputStream.close();
+    private void showPermissionRationaleDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Camera Permission Required")
+                .setMessage("This app needs camera permission to take photos for your profile picture. Please grant the permission to use this feature.")
+                .setPositiveButton("OK", (dialog, which) -> requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
 
-            Map config = new HashMap();
-            config.put("cloud_name", CLOUDINARY_CLOUD_NAME);
-            config.put("api_key", CLOUDINARY_API_KEY);
-            config.put("api_secret", CLOUDINARY_API_SECRET);
+    private void showPermissionDeniedDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Camera Permission Denied")
+                .setMessage("Camera permission is required to take photos. You can enable it in the app's settings.")
+                .setPositiveButton("OK", null)
+                .show();
+    }
 
-            Cloudinary cloudinary = new Cloudinary(config);
-
-            new Thread(() -> {
-                try {
-                    Map uploadResult = cloudinary.uploader().upload(imageBytes, ObjectUtils.asMap("folder", "profile_pictures"));
-                    String imageUrl = (String) uploadResult.get("secure_url");
-
-                    Log.d("ProfileFragment", "Image uploaded: " + imageUrl);  // ✅ Debugging
-                    saveImageUrlToFirestore(imageUrl);
-                } catch (Exception e) {
-                    Log.e("ProfileFragment", "Cloudinary upload failed", e);
+    private final ActivityResultLauncher<Intent> takePictureLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && profileImageUri != null) {
+                    Log.d("ProfileFragment", "Photo taken: " + profileImageUri.toString());
+                    uploadImageToCloudinary(profileImageUri);
+                } else {
+                    Log.d("ProfileFragment", "Photo capture canceled or failed.");
                 }
-            }).start();
+            }
+    );
 
-        } catch (IOException e) {
-            Log.e("ProfileFragment", "Error reading image file", e);
-        }
+    private final ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null && result.getData().getData() != null) {
+                    Uri imageUri = result.getData().getData();
+                    Log.d("ProfileFragment", "Gallery image selected: " + imageUri.toString());
+                    uploadImageToCloudinary(imageUri);
+                } else {
+                    Log.d("ProfileFragment", "Image selection canceled or failed.");
+                }
+            }
+    );
+
+    private final ActivityResultLauncher<String> requestCameraPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                if (isGranted) {
+                    takePhoto();
+                } else {
+                    showPermissionDeniedDialog();
+                }
+            }
+    );
+
+    private void uploadImageToCloudinary(Uri imageUri) {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        cloudinaryRepository.uploadImageToCloudinary(imageUri, user.getUid(), new CloudinaryRepository.CloudinaryCallback() {
+            @Override
+            public void onSuccess(String imageUrl) {
+                Log.d("ProfileFragment", "Image uploaded successfully: " + imageUrl);
+                saveImageUrlToFirestore(imageUrl);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.e("ProfileFragment", "Cloudinary upload failed: " + errorMessage);
+                getActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), "Image upload failed", Toast.LENGTH_SHORT).show()
+                );
+            }
+        });
     }
-
 
     private void saveImageUrlToFirestore(String imageUrl) {
         FirebaseUser user = auth.getCurrentUser();
@@ -271,7 +340,8 @@ public class ProfileFragment extends Fragment {
                         Toast.makeText(requireContext(), "Profile Picture Updated!", Toast.LENGTH_SHORT).show();
                         loadProfilePicture();
                     });
-                });
+                })
+                .addOnFailureListener(e -> Log.e("ProfileFragment", "Failed to update profile image", e));
     }
 
     private void loadProfilePicture() {
@@ -286,6 +356,14 @@ public class ProfileFragment extends Fragment {
                 }
             }
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (dialogRef != null && dialogRef.get() != null) {
+            dialogRef.get().dismiss();
+        }
     }
 
     // 🔹 Update UI based on login state
