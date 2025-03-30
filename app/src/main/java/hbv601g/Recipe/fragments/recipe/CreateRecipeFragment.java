@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.lifecycle.Lifecycle;
 import android.content.Intent;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -228,14 +229,18 @@ public class CreateRecipeFragment extends Fragment {
                                             documentReference.update("imageUrl", imageUrl)
                                                 .addOnSuccessListener(aVoid -> {
                                                     // Navigate back to HomeFragment
-                                                    NavHostFragment.findNavController(CreateRecipeFragment.this)
-                                                            .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                                    if (isAdded() && getViewLifecycleOwner().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+                                                        NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                                .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                                    }
                                                 })
                                                 .addOnFailureListener(e -> {
                                                     Toast.makeText(getContext(), "Failed to update image URL", Toast.LENGTH_SHORT).show();
                                                     // Navigate back to HomeFragment
-                                                    NavHostFragment.findNavController(CreateRecipeFragment.this)
-                                                            .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                                    if (isAdded() && getViewLifecycleOwner().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+                                                        NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                                .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                                    }
                                                 });
                                         }
 
@@ -243,18 +248,24 @@ public class CreateRecipeFragment extends Fragment {
                                         public void onError(String errorMessage) {
                                             Toast.makeText(getContext(), "Image upload failed: " + errorMessage, Toast.LENGTH_SHORT).show();
                                             // Navigate back to HomeFragment
-                                            NavHostFragment.findNavController(CreateRecipeFragment.this)
-                                                    .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                            if (isAdded() && getViewLifecycleOwner().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+                                                NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                        .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                            }
                                         }
                                     });
                                 } else {
                                     // Navigate back to HomeFragment if no image to upload
+                                    if (isAdded() && getViewLifecycleOwner().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+                                        NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                    }
+
+                                }
+                                if (isAdded() && getViewLifecycleOwner().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
                                     NavHostFragment.findNavController(CreateRecipeFragment.this)
                                             .navigate(R.id.action_createRecipeFragment_to_navigation_home);
                                 }
-
-                                NavHostFragment.findNavController(CreateRecipeFragment.this)
-                                        .navigate(R.id.action_createRecipeFragment_to_navigation_home);
                             })
                             .addOnFailureListener(e ->
                                     Toast.makeText(getContext(), "Failed to update recipe ID", Toast.LENGTH_SHORT).show());

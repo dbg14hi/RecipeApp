@@ -10,15 +10,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import hbv601g.Recipe.repository.CloudinaryRepository;
-import hbv601g.Recipe.ui.home.FavoritesAdapter;
-import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.repository.FirestoreRepository;
 
 import android.annotation.SuppressLint;
@@ -42,9 +34,6 @@ import android.widget.Toast;
 import android.Manifest;
 
 import android.content.pm.PackageManager;
-
-import android.os.Environment;
-
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -79,11 +68,6 @@ public class ProfileFragment extends Fragment {
     private EditText newUsernameField, newEmailField, currentPasswordField, newPasswordField;
     private LinearLayout loggedInContainer;
     private UserService userService;
-
-    private RecyclerView favoritesRecyclerView;
-    private FavoritesAdapter favoritesAdapter;
-    private List<Recipe> favoriteRecipes;
-    private FirestoreRepository firestoreRepository;
     private CloudinaryRepository cloudinaryRepository;
     private Uri profileImageUri;
     private WeakReference<AlertDialog> dialogRef;
