@@ -1,9 +1,23 @@
 <resources>
     <string name="app_name">Recipe</string>
     <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
+    <string name="title_favorites">Favorites</string>
     <string name="title_notifications">Notifications</string>
     <string name="title_profile">Profile</string>
+    <string name="change_profile_picture">Change Profile Picture</string>
+    <string name="username">Username</string>
+    <string name="email">Email</string>
+    <string name="logout">LOGOUT</string>
+    <string name="current_password_required">Current Password (Required)</string>
+    <string name="enter_current_password">Enter current password</string>
+    <string name="enter_new_username">Enter new username</string>
+    <string name="update_username">Update Username</string>
+    <string name="enter_new_email">Enter new email</string>
+    <string name="update_email">Update Email</string>
+    <string name="enter_new_password">Enter new password</string>
+    <string name="update_password">Update Password</string>
+    <string name="register">Register</string>
+    <string name="login">Login</string>
 
     <string-array name="meal_categories">
         <item>Breakfast</item>
