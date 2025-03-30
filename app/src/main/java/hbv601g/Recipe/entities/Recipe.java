@@ -21,6 +21,7 @@ public class Recipe {
     private List<String> mealCategories;
     private Timestamp timestamp;
     private String userId;
+    private String imageUrl;
 
     /**
      * Default constructor required for Firestore
@@ -130,5 +131,9 @@ public class Recipe {
                 ", timestamp=" + timestamp +
                 ", userId='" + userId + '\'' +
                 '}';
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 }

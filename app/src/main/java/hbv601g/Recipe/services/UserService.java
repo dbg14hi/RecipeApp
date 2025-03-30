@@ -25,7 +25,7 @@ public class UserService {
         this.activity = activity;
     }
 
-    // 🔹 Register New User
+    // Register New User
     public void registerUser(String username, String email, String password) {
         db.collection("users")
                 .whereEqualTo("username", username)
@@ -59,7 +59,7 @@ public class UserService {
                 .addOnFailureListener(e -> Toast.makeText(activity, "Error checking username: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
-    // 🔹 User Login
+    // User Login
     public void loginUser(String username, String password) {
         db.collection("users")
                 .whereEqualTo("username", username)
@@ -73,7 +73,7 @@ public class UserService {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(activity, "Login successful!", Toast.LENGTH_SHORT).show();
 
-                                        // ✅ Navigate to ProfileFragment only if not already there
+                                        // Navigate to ProfileFragment only if not already there
                                         NavController navController = Navigation.findNavController(activity, R.id.nav_host_fragment);
                                         if (navController.getCurrentDestination().getId() != R.id.navigation_profile) {
                                             navController.navigate(R.id.action_loginFragment_to_navigation_profile);
@@ -89,14 +89,14 @@ public class UserService {
                 .addOnFailureListener(e -> Toast.makeText(activity, "Error checking username: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
-    // 🔹 Update Username
+    // Update Username
     public void updateUsername(String newUsername) {
         FirebaseUser user = auth.getCurrentUser();
 
         if (user != null) {
             String userId = user.getUid();
 
-            // 🔹 First, check if the username already exists
+            // First, check if the username already exists
             db.collection("users")
                     .whereEqualTo("username", newUsername)
                     .get()
@@ -104,7 +104,7 @@ public class UserService {
                         if (!querySnapshot.isEmpty()) {
                             Toast.makeText(activity, "Username already taken. Choose another.", Toast.LENGTH_SHORT).show();
                         } else {
-                            // 🔹 If username is unique, update it in Firestore
+                            // If username is unique, update it in Firestore
                             db.collection("users").document(userId)
                                     .update("username", newUsername)
                                     .addOnSuccessListener(aVoid -> {
@@ -125,6 +125,7 @@ public class UserService {
         }
     }
 
+    // Update email
     public void updateEmail(String currentPassword, String newEmail) {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null && user.getEmail() != null) {
@@ -154,7 +155,7 @@ public class UserService {
         }
     }
 
-
+    // Update Password
     public void updatePassword(String currentPassword, String newPassword) {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null && user.getEmail() != null) {
@@ -180,11 +181,7 @@ public class UserService {
         }
     }
 
-
-
-
-
-    // 🔹 Logout User → Reload ProfileFragment
+    // Logout User → Reload ProfileFragment
     public void logoutUser() {
         auth.signOut();
 

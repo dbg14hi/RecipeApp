@@ -135,7 +135,13 @@ public class RecipeDetailFragment extends Fragment {
 
             titleTextView.setText(title);
             descriptionTextView.setText(description);
-            ingredientsTextView.setText(TextUtils.join(", ", ingredients));
+            if (ingredients != null && !ingredients.isEmpty()) {
+                Log.d("RecipeDetail", "Ingredients: " + ingredients);
+                ingredientsTextView.setText(TextUtils.join(", ", ingredients));
+            } else {
+                ingredientsTextView.setText("No ingredients listed");
+            }
+
             cookingTimeTextView.setText("Cooking Time: " + cookingTime + " minutes");
 
             checkIfFavorite();
