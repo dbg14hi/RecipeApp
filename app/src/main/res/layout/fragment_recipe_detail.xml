@@ -71,6 +71,14 @@
         android:text="Add Review"
         android:layout_gravity="center"/>
 
+    <!-- Schedule Recipe Button -->
+    <Button
+        android:id="@+id/scheduleRecipeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Schedule Recipe"
+        android:layout_gravity="center"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/reviewRecyclerView"
         android:layout_width="match_parent"

@@ -10,6 +10,7 @@ import hbv601g.Recipe.repository.FirestoreRepository
 class HomeViewModel : ViewModel() {
 
     private val repository = FirestoreRepository()
+    private var allRecipes: List<Recipe> = emptyList()
 
     private val _recipesLiveData = MutableLiveData<List<Recipe>>()
     val recipesLiveData: LiveData<List<Recipe>> = _recipesLiveData

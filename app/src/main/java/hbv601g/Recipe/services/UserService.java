@@ -7,6 +7,8 @@ import androidx.navigation.Navigation;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.AuthCredential;
 import java.util.HashMap;
 import java.util.Map;
 import hbv601g.Recipe.R;
@@ -23,7 +25,7 @@ public class UserService {
         this.activity = activity;
     }
 
-    // 🔹 Register New User
+    // Register New User
     public void registerUser(String username, String email, String password) {
         db.collection("users")
                 .whereEqualTo("username", username)
@@ -57,7 +59,7 @@ public class UserService {
                 .addOnFailureListener(e -> Toast.makeText(activity, "Error checking username: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
-    // 🔹 User Login
+    // User Login
     public void loginUser(String username, String password) {
         db.collection("users")
                 .whereEqualTo("username", username)
@@ -71,7 +73,7 @@ public class UserService {
                                     if (task.isSuccessful()) {
                                         Toast.makeText(activity, "Login successful!", Toast.LENGTH_SHORT).show();
 
-                                        // ✅ Navigate to ProfileFragment only if not already there
+                                        // Navigate to ProfileFragment only if not already there
                                         NavController navController = Navigation.findNavController(activity, R.id.nav_host_fragment);
                                         if (navController.getCurrentDestination().getId() != R.id.navigation_profile) {
                                             navController.navigate(R.id.action_loginFragment_to_navigation_profile);
@@ -87,14 +89,14 @@ public class UserService {
                 .addOnFailureListener(e -> Toast.makeText(activity, "Error checking username: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
-    // 🔹 Update Username
+    // Update Username
     public void updateUsername(String newUsername) {
         FirebaseUser user = auth.getCurrentUser();
 
         if (user != null) {
             String userId = user.getUid();
 
-            // 🔹 First, check if the username already exists
+            // First, check if the username already exists
             db.collection("users")
                     .whereEqualTo("username", newUsername)
                     .get()
@@ -102,7 +104,7 @@ public class UserService {
                         if (!querySnapshot.isEmpty()) {
                             Toast.makeText(activity, "Username already taken. Choose another.", Toast.LENGTH_SHORT).show();
                         } else {
-                            // 🔹 If username is unique, update it in Firestore
+                            // If username is unique, update it in Firestore
                             db.collection("users").document(userId)
                                     .update("username", newUsername)
                                     .addOnSuccessListener(aVoid -> {
@@ -123,8 +125,63 @@ public class UserService {
         }
     }
 
+    // Update email
+    public void updateEmail(String currentPassword, String newEmail) {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null && user.getEmail() != null) {
+            AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPassword);
+            user.reauthenticate(credential).addOnCompleteListener(reauthTask -> {
+                if (reauthTask.isSuccessful()) {
+                    user.updateEmail(newEmail)
+                            .addOnCompleteListener(emailUpdateTask -> {
+                                if (emailUpdateTask.isSuccessful()) {
+                                    // Update email in Firestore too
+                                    db.collection("users").document(user.getUid())
+                                            .update("email", newEmail)
+                                            .addOnSuccessListener(aVoid ->
+                                                    Toast.makeText(activity, "Email updated successfully!", Toast.LENGTH_SHORT).show())
+                                            .addOnFailureListener(e ->
+                                                    Toast.makeText(activity, "Failed to update email in Firestore: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                                } else {
+                                    Toast.makeText(activity, "Email update failed: " + emailUpdateTask.getException().getMessage(), Toast.LENGTH_LONG).show();
+                                }
+                            });
+                } else {
+                    Toast.makeText(activity, "Reauthentication failed: " + reauthTask.getException().getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        } else {
+            Toast.makeText(activity, "No logged-in user found!", Toast.LENGTH_SHORT).show();
+        }
+    }
 
-    // 🔹 Logout User → Reload ProfileFragment
+    // Update Password
+    public void updatePassword(String currentPassword, String newPassword) {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user != null && user.getEmail() != null) {
+            // Reauthenticate with current credentials
+            AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPassword);
+            user.reauthenticate(credential).addOnCompleteListener(reauthTask -> {
+                if (reauthTask.isSuccessful()) {
+                    // Now update the password
+                    user.updatePassword(newPassword)
+                            .addOnCompleteListener(passwordUpdateTask -> {
+                                if (passwordUpdateTask.isSuccessful()) {
+                                    Toast.makeText(activity, "Password updated successfully!", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(activity, "Password update failed: " + passwordUpdateTask.getException().getMessage(), Toast.LENGTH_LONG).show();
+                                }
+                            });
+                } else {
+                    Toast.makeText(activity, "Reauthentication failed: " + reauthTask.getException().getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        } else {
+            Toast.makeText(activity, "No logged-in user found!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // Logout User → Reload ProfileFragment
     public void logoutUser() {
         auth.signOut();
 

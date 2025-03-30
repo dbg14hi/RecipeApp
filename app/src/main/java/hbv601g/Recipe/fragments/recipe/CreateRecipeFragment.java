@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -23,11 +24,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.lifecycle.Lifecycle;
 import android.content.Intent;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,10 +43,13 @@ import android.provider.MediaStore;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 
+
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.repository.CloudinaryRepository;
 
-
+/**
+ * A Fragment that allows users to create a new recipe and store it in Firestore.
+ */
 public class CreateRecipeFragment extends Fragment {
 
     private FirebaseAuth auth;
@@ -89,10 +95,17 @@ public class CreateRecipeFragment extends Fragment {
 
     // Submit button
     private Button submitRecipeButton;
-
-    private final List<String> allDietaryRestrictions = Arrays.asList("Nut-free", "Vegan", "Vegetarian", "Gluten-free", "Dairy-free"); // Example data
+    private final List<String> allDietaryRestrictions = Arrays.asList("Nut-free", "Vegan", "Vegetarian", "Gluten-free", "Dairy-free");
     private final List<String> allMealCategories = Arrays.asList("Breakfast", "Lunch", "Dinner", "Snacks");
 
+    /**
+     * Inflates the fragment layout and initializes UI components.
+     *
+     * @param inflater           The LayoutInflater used to inflate views.
+     * @param container          The parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState Saved state bundle for restoring state.
+     * @return The created View instance for the fragment.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -119,7 +132,6 @@ public class CreateRecipeFragment extends Fragment {
 
         submitRecipeButton = view.findViewById(R.id.submitRecipeButton);
 
-        // Setup checkboxes for filters
         for (String restriction : allDietaryRestrictions) {
             CheckBox checkBox = new CheckBox(this.getContext());
             checkBox.setText(restriction);
@@ -132,7 +144,6 @@ public class CreateRecipeFragment extends Fragment {
             mealCategoriesContainer.addView(checkBox);
         }
 
-        // Setup listener for image
         recipeImageView.setOnClickListener(v -> showImagePickerDialog());
         recipeImageButton.setOnClickListener(v -> showImagePickerDialog());
 
@@ -151,6 +162,9 @@ public class CreateRecipeFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Creates a new recipe and stores it in Firestore.
+     */
     private void createRecipe() {
         String title = titleInput.getText().toString().trim();
         String description = descriptionInput.getText().toString().trim();
@@ -215,14 +229,18 @@ public class CreateRecipeFragment extends Fragment {
                                             documentReference.update("imageUrl", imageUrl)
                                                 .addOnSuccessListener(aVoid -> {
                                                     // Navigate back to HomeFragment
-                                                    NavHostFragment.findNavController(CreateRecipeFragment.this)
-                                                            .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                                    if (isAdded() && getViewLifecycleOwner().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+                                                        NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                                .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                                    }
                                                 })
                                                 .addOnFailureListener(e -> {
                                                     Toast.makeText(getContext(), "Failed to update image URL", Toast.LENGTH_SHORT).show();
                                                     // Navigate back to HomeFragment
-                                                    NavHostFragment.findNavController(CreateRecipeFragment.this)
-                                                            .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                                    if (isAdded() && getViewLifecycleOwner().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+                                                        NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                                .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                                    }
                                                 });
                                         }
 
@@ -230,16 +248,24 @@ public class CreateRecipeFragment extends Fragment {
                                         public void onError(String errorMessage) {
                                             Toast.makeText(getContext(), "Image upload failed: " + errorMessage, Toast.LENGTH_SHORT).show();
                                             // Navigate back to HomeFragment
-                                            NavHostFragment.findNavController(CreateRecipeFragment.this)
-                                                    .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                            if (isAdded() && getViewLifecycleOwner().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+                                                NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                        .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                            }
                                         }
                                     });
                                 } else {
                                     // Navigate back to HomeFragment if no image to upload
+                                    if (isAdded() && getViewLifecycleOwner().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
+                                        NavHostFragment.findNavController(CreateRecipeFragment.this)
+                                                .navigate(R.id.action_createRecipeFragment_to_navigation_home);
+                                    }
+
+                                }
+                                if (isAdded() && getViewLifecycleOwner().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
                                     NavHostFragment.findNavController(CreateRecipeFragment.this)
                                             .navigate(R.id.action_createRecipeFragment_to_navigation_home);
                                 }
-
                             })
                             .addOnFailureListener(e ->
                                     Toast.makeText(getContext(), "Failed to update recipe ID", Toast.LENGTH_SHORT).show());
@@ -309,6 +335,9 @@ public class CreateRecipeFragment extends Fragment {
                 .show();
     }
 
+    /**
+     * Cleans up the fragment when it is destroyed, resetting the back button state.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -316,5 +345,6 @@ public class CreateRecipeFragment extends Fragment {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         }
     }
+
 }
 

@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -28,6 +29,11 @@ public class FirestoreRepository {
         recipeCollection = db.collection("recipes");
         reviewCollection = db.collection("reviews");
         usersCollection = db.collection("users");
+    }
+
+    public interface FirestoreCallback<T> {
+        void onSuccess(T result);
+        void onFailure(Exception e);
     }
 
     // ================
@@ -108,94 +114,38 @@ public class FirestoreRepository {
         });
     }
 
+
+
     // ================
     // FAVORITES OPERATIONS
     // ================
 
-    public void addRecipeToFavorites(String userId, Recipe recipe) {
-        if (recipe == null || recipe.getRecipeId() == null || recipe.getRecipeId().isEmpty()) {
-            Log.e("FirestoreRepository", "Error: Recipe object is null or missing an ID");
-            return;
-        }
-
-        Map<String, Object> favoriteData = new HashMap<>();
-        favoriteData.put("recipeId", recipe.getRecipeId());
-        favoriteData.put("title", recipe.getTitle());
-        favoriteData.put("description", recipe.getDescription());
-        favoriteData.put("cookingTime", recipe.getCookingTime());
-        favoriteData.put("ingredients", recipe.getIngredients());
-        favoriteData.put("dietaryRestrictions", recipe.getDietaryRestrictions());
-        favoriteData.put("mealCategories", recipe.getMealCategories());
-
-        usersCollection.document(userId)
-                .collection("favorites")
-                .document(recipe.getRecipeId())  // Creates a document inside 'favorites'
-                .set(favoriteData)  // Stores the full recipe data
-                .addOnSuccessListener(aVoid ->
-                        Log.d("FirestoreRepository", "Recipe added to favorites for user: " + userId))
-                .addOnFailureListener(e ->
-                        Log.e("FirestoreRepository", "Error adding recipe to favorites: " + e.getMessage()));
-    }
-
-    public void removeRecipeFromFavorites(String userId, String recipeId) {
-        if (userId == null || userId.isEmpty() || recipeId == null || recipeId.isEmpty()) {
-            Log.e("FirestoreRepository", "Error: User ID or Recipe ID is null or empty!");
-            return;
-        }
-
-        usersCollection.document(userId)
-                .collection("favorites")
-                .document(recipeId)
-                .delete()
-                .addOnSuccessListener(aVoid ->
-                        Log.d("FirestoreRepository", "Recipe removed from favorites for user: " + userId))
-                .addOnFailureListener(e ->
-                        Log.e("FirestoreRepository", "Error removing recipe from favorites: " + e.getMessage()));
-    }
-
-
-    public void getUserFavorites(String userId, RecipeCallback callback) {
-        if (userId == null || userId.isEmpty()) {
-            System.err.println("User ID is null or empty!");
-            callback.onFailure(new Exception("User ID is required"));
-            return;
-        }
-
-        usersCollection.document(userId)
-                .collection("favorites")
+    public void getFavoriteRecipeIds(String userId, FirestoreCallback<List<String>> callback) {
+        db.collection("users").document(userId)
                 .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        List<Recipe> favorites = new ArrayList<>();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Recipe recipe = document.toObject(Recipe.class);
-                            favorites.add(recipe);
-                        }
-                        callback.onRecipesLoaded(favorites);
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        List<String> ids = (List<String>) doc.get("favorites");
+                        callback.onSuccess(ids != null ? ids : new ArrayList<>());
                     } else {
-                        callback.onFailure(task.getException());
+                        callback.onSuccess(new ArrayList<>());
                     }
-                });
+                })
+                .addOnFailureListener(callback::onFailure);
     }
 
-    public void isRecipeFavorite(String userId, String recipeId, FavoriteCallback callback) {
-        if (userId == null || userId.isEmpty() || recipeId == null || recipeId.isEmpty()) {
-            System.err.println("User ID or Recipe ID is null or empty!");
-            callback.onResult(false);
-            return;
-        }
-
-        usersCollection.document(userId)
-                .collection("favorites")
-                .document(recipeId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    callback.onResult(documentSnapshot.exists());
-                })
-                .addOnFailureListener(e -> {
-                    System.err.println("Error checking favorite status: " + e.getMessage());
-                    callback.onResult(false);
-                });
+    public void removeFavorite(String userId, String recipeId, FirestoreCallback<Void> callback) {
+        DocumentReference userRef = db.collection("users").document(userId);
+        userRef.get().addOnSuccessListener(doc -> {
+            if (doc.exists()) {
+                List<String> favorites = (List<String>) doc.get("favorites");
+                if (favorites != null && favorites.remove(recipeId)) {
+                    userRef.update("favorites", favorites)
+                            .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                            .addOnFailureListener(callback::onFailure);
+                }
+            }
+        }).addOnFailureListener(callback::onFailure);
     }
 
     public void getRecipesByIds(List<String> recipeIds, RecipeCallback callback) {
@@ -222,7 +172,6 @@ public class FirestoreRepository {
                     .addOnFailureListener(e -> callback.onFailure(e));
         }
     }
-
 
     // ================
     // REVIEW OPERATIONS
