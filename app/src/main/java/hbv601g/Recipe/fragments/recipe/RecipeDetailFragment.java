@@ -63,20 +63,29 @@ import hbv601g.Recipe.ui.notifications.RecipeNotificationWorker;
 import hbv601g.Recipe.utils.PermissionsHelper;
 import hbv601g.Recipe.utils.RecipeScheduler;
 
+/**
+ * Fragment that displays detailed information about a recipe,
+ * allows users to mark recipes as favorites, add reviews, and schedule cooking.
+ */
 public class RecipeDetailFragment extends Fragment {
-
     private TextView titleTextView, descriptionTextView, ingredientsTextView, cookingTimeTextView, dietaryRestrictionsTextView, mealCategoriesTextView;
     private ImageButton favoriteButton;
-
-    private ReviewAdapter reviewAdapter; //Arna
-    private List<Review> reviewList; //Arna
-
+    private ReviewAdapter reviewAdapter;
+    private List<Review> reviewList;
     private FirestoreRepository repository;
     private String userId, recipeId;
     private boolean isFavorite = false;
     private Recipe recipe;
     private FragmentRecipeDetailBinding _binding;
 
+    /**
+     * Inflates the layout and initializes UI elements for the recipe details.
+     *
+     * @param inflater           LayoutInflater to inflate views.
+     * @param container          Parent view container.
+     * @param savedInstanceState Previously saved instance state.
+     * @return The root view of the fragment.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         _binding = FragmentRecipeDetailBinding.inflate(inflater, container, false);  // Initialize View Binding
@@ -89,11 +98,9 @@ public class RecipeDetailFragment extends Fragment {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        // Request necessary permissions and set up the schedule button.
         PermissionsHelper.requestNecessaryPermissions(this);
         setupScheduleButton();
 
-        // Initialize UI elements
         titleTextView = view.findViewById(R.id.recipe_title);
         descriptionTextView = view.findViewById(R.id.recipe_description);
         ingredientsTextView = view.findViewById(R.id.recipe_ingredients);
@@ -101,15 +108,14 @@ public class RecipeDetailFragment extends Fragment {
         dietaryRestrictionsTextView = view.findViewById(R.id.recipe_dietary_restrictions);
         mealCategoriesTextView = view.findViewById(R.id.recipe_meal_categories);
         favoriteButton = view.findViewById(R.id.favoriteButton);
-        //Arna
-        Button reviewButton; //Arna
-        reviewButton = view.findViewById(R.id.reviewButton);//Arna
+        Button reviewButton;
+        reviewButton = view.findViewById(R.id.reviewButton);
         RecyclerView reviewRecyclerView; //Arna
-        reviewRecyclerView = view.findViewById(R.id.reviewRecyclerView); //Arna
-        reviewRecyclerView.setLayoutManager(new LinearLayoutManager(getContext())); //Arna
+        reviewRecyclerView = view.findViewById(R.id.reviewRecyclerView);
+        reviewRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         reviewList = new ArrayList<>(); //Arna
-        reviewAdapter = new ReviewAdapter(reviewList); //Arna
-        reviewRecyclerView.setAdapter(reviewAdapter); //Arna
+        reviewAdapter = new ReviewAdapter(reviewList);
+        reviewRecyclerView.setAdapter(reviewAdapter);
 
         Bundle args = getArguments();
         if (args != null) {
@@ -157,6 +163,9 @@ public class RecipeDetailFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Checks if the recipe is marked as users favorite recipe
+     */
     private void checkIfFavorite() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference userRef = db.collection("users").document(userId);
@@ -172,7 +181,11 @@ public class RecipeDetailFragment extends Fragment {
         }).addOnFailureListener(e -> Log.e("Favorites", "Failed to check favorite", e));
     }
 
-
+    /**
+     * Toogles favorite recipes for users
+     * @param userId
+     * @param recipeId
+     */
     private void toggleFavorite(String userId, String recipeId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference userRef = db.collection("users").document(userId);
@@ -195,7 +208,6 @@ public class RecipeDetailFragment extends Fragment {
                     isFavorite = true;
                 }
 
-                // Update Firestore and UI **only if Firestore update is successful**
                 userRef.update("favorites", favorites)
                         .addOnSuccessListener(aVoid -> {
                             Log.d("Favorites", "Updated successfully");
@@ -204,7 +216,6 @@ public class RecipeDetailFragment extends Fragment {
                         .addOnFailureListener(e -> Log.e("Favorites", "Error updating", e));
 
             } else {
-                // If user doc doesn't exist, create it and add favorite
                 Map<String, Object> userData = new HashMap<>();
                 userData.put("favorites", Arrays.asList(recipeId));
 
@@ -219,7 +230,10 @@ public class RecipeDetailFragment extends Fragment {
         });
     }
 
-    // Function to update UI state
+    /**
+     * Updates the User interface to show that the recipe is users favorite
+     * @param isFavorited
+     */
     private void updateFavoriteButtonUI(boolean isFavorited) {
         if (!isAdded() || getView() == null) return;
 
@@ -232,7 +246,10 @@ public class RecipeDetailFragment extends Fragment {
         updateFavoriteIcon(isFavorited);
     }
 
-
+    /**
+     * Set a red light in the icon for showing it is the users favorite recipe in UI
+     * @param isFavorite
+     */
     private void updateFavoriteIcon(boolean isFavorite) {
         favoriteButton.setImageResource(isFavorite ? R.drawable.ic_heart_filled : R.drawable.ic_heart_empty);
     }
@@ -245,7 +262,9 @@ public class RecipeDetailFragment extends Fragment {
         }
     }
 
-    //Virkni á add review takka.
+    /**
+     * Opens the review fragment for adding a review
+     */
     private void openReviewFragment() {
         NewReviewFragment newReviewFragment = new NewReviewFragment();
         Bundle args = new Bundle();
@@ -255,6 +274,9 @@ public class RecipeDetailFragment extends Fragment {
         NavHostFragment.findNavController(this).navigate(R.id.newReviewFragment, args);
     }
 
+    /**
+     * Fetch reviews for recipes
+     */
     private void fetchReviews() {
         if (recipeId != null && !recipeId.isEmpty()) {
             repository.getReviewsByRecipe(recipeId, new FirestoreRepository.ReviewCallback() {
@@ -266,7 +288,6 @@ public class RecipeDetailFragment extends Fragment {
                     reviewAdapter.notifyDataSetChanged();
 
                     Log.d("RecipeDetailFragment", "Reviews loaded: " + reviews.size());
-                    //bætti þessu við til að ath rétta virkni
                 }
 
                 @Override
@@ -277,7 +298,9 @@ public class RecipeDetailFragment extends Fragment {
         }
     }
 
-    //  Setup schedule recipe Button
+    /**
+     * Setup for scheduling for the shcedule recipe button
+     */
     private void setupScheduleButton() {
         _binding.scheduleRecipeButton.setOnClickListener(v -> {
             RecipeScheduler scheduler = new RecipeScheduler(requireContext(), recipe, recipeId);
@@ -285,7 +308,9 @@ public class RecipeDetailFragment extends Fragment {
         });
     }
 
-    // Launches permission request for reading and writing calendar events.
+    /**
+     * Launches permission request for reading and writing calendar events.
+     */
     public void requestCalendarPermissions() {
         requestPermissionLauncher.launch(new String[]{
                 Manifest.permission.READ_CALENDAR,
@@ -293,7 +318,9 @@ public class RecipeDetailFragment extends Fragment {
         });
     }
 
-    // Handles multiple permission requests for reading and writing calendar events.
+    /**
+     * Handles multiple permission requests for reading and writing calendar events.
+     */
     private final ActivityResultLauncher<String[]> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
                 Boolean calendarReadGranted = result.getOrDefault(Manifest.permission.READ_CALENDAR, false);

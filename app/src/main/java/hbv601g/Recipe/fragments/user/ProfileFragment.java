@@ -36,37 +36,45 @@ import com.cloudinary.utils.ObjectUtils;
 import hbv601g.Recipe.R;
 import hbv601g.Recipe.services.UserService;
 
+/**
+ * Fragment for users profile, for updating their user information
+ */
 public class ProfileFragment extends Fragment {
-
-    // Firebase
     private FirebaseAuth auth;
     private FirebaseFirestore db;
     private FirebaseUser currentUser;
-
-    // UI Elements
     private ImageView profileImageView;
     private TextView usernameText, emailText;
     private Button loginButton, registerButton, logoutButton;
     private Button changeProfilePicButton, updateUsernameButton, updateEmailButton, updatePasswordButton;
     private EditText newUsernameField, newEmailField, currentPasswordField, newPasswordField;
     private LinearLayout loggedInContainer;
-
-    // Services
     private UserService userService;
-
-    // Image
     private static final int PICK_IMAGE_REQUEST = 1;
     private Uri imageUri;
-
-    // Cloudinary Credentials
     private static final String CLOUDINARY_CLOUD_NAME = "dmvi22sp2";
     private static final String CLOUDINARY_API_KEY = "467191768881654";
     private static final String CLOUDINARY_API_SECRET = "J5-uGDut7KJo7EDBEEYlCheEvAI";
 
+    /**
+     * Constructor for ProfileFragment for Firestore
+     */
     public ProfileFragment() {
-        // Required empty public constructor
     }
 
+    /**
+     * View for user profile
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate
+     * any views in the fragment,
+     * @param container If non-null, this is the parent view that the fragment's
+     * UI should be attached to.  The fragment should not add the view itself,
+     * but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     *
+     * @return
+     */
     @SuppressLint("MissingInflatedId")
     @Nullable
     @Override
@@ -80,11 +88,9 @@ public class ProfileFragment extends Fragment {
             userService = new UserService(getActivity());
         }
 
-        // Profile Picture Elements
         profileImageView = view.findViewById(R.id.profileImageView);
         changeProfilePicButton = view.findViewById(R.id.changeProfilePicButton);
 
-        // Initialize UI Elements
         usernameText = view.findViewById(R.id.usernameText);
         emailText = view.findViewById(R.id.emailText);
         loginButton = view.findViewById(R.id.loginButton);
@@ -98,28 +104,21 @@ public class ProfileFragment extends Fragment {
         newPasswordField = view.findViewById(R.id.newPasswordField);
         updatePasswordButton = view.findViewById(R.id.updatePasswordButton);
         loggedInContainer = view.findViewById(R.id.loggedInContainer);
-
-        // Change Profile Picture
         changeProfilePicButton.setOnClickListener(v -> openFileChooser());
         profileImageView.setOnClickListener(v -> openFileChooser());
 
-        // Navigate to Login
         loginButton.setOnClickListener(v ->
                 Navigation.findNavController(view).navigate(R.id.action_navigation_profile_to_loginFragment)
         );
 
-        // Navigate to Register
         registerButton.setOnClickListener(v ->
                 Navigation.findNavController(view).navigate(R.id.action_navigation_profile_to_signUpFragment)
         );
 
-        // Update UI when fragment is opened
         auth.addAuthStateListener(firebaseAuth -> updateUI());
 
-        // Logout
         logoutButton.setOnClickListener(v -> userService.logoutUser());
 
-        // Update Username
         updateUsernameButton.setOnClickListener(v -> {
             String newUsername = newUsernameField.getText().toString().trim();
 
@@ -130,7 +129,6 @@ public class ProfileFragment extends Fragment {
             userService.updateUsername(newUsername);
         });
 
-        // Update Email
         updateEmailButton.setOnClickListener(v -> {
             String newEmail = newEmailField.getText().toString().trim();
             String currentPassword = currentPasswordField.getText().toString().trim();
@@ -142,7 +140,6 @@ public class ProfileFragment extends Fragment {
             updateUI();
         });
 
-        // Update Password
         updatePasswordButton.setOnClickListener(v -> {
             String newPassword = newPasswordField.getText().toString().trim();
             String currentPassword = currentPasswordField.getText().toString().trim();
@@ -157,7 +154,9 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
-    // Opens the file chooster to pick a new profile picture
+    /**
+     * For selecting a new profile picture
+     */
     private void openFileChooser() {
         Intent intent = new Intent();
         intent.setType("image/*");
@@ -165,6 +164,18 @@ public class ProfileFragment extends Fragment {
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
 
+    /**
+     * Handles the image selection activity
+     *
+     * @param requestCode The integer request code originally supplied to
+     *                    startActivityForResult(), allowing you to identify who this
+     *                    result came from.
+     * @param resultCode The integer result code returned by the child activity
+     *                   through its setResult().
+     * @param data An Intent, which can return result data to the caller
+     *               (various data can be attached to Intent "extras").
+     *
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -177,6 +188,9 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    /**
+     * Handles the Cloudinary image uploading
+     */
     private void uploadImageToCloudinary() {
         if (imageUri == null) {
             Log.e("ProfileFragment", "uploadImageToCloudinary: No image URI found");
@@ -215,6 +229,11 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    /**
+     * Saves the image url to the Firestore database
+     *
+     * @param imageUrl The url for the image
+     */
     private void saveImageUrlToFirestore(String imageUrl) {
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) return;
@@ -229,6 +248,9 @@ public class ProfileFragment extends Fragment {
                 });
     }
 
+    /**
+     * Handles the profile picture uploading
+     */
     private void loadProfilePicture() {
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) return;
@@ -243,7 +265,9 @@ public class ProfileFragment extends Fragment {
         });
     }
 
-    // Update UI based on login state
+    /**
+     * Updates the users UI
+     */
     private void updateUI() {
         FirebaseUser user = auth.getCurrentUser();
 
@@ -269,11 +293,9 @@ public class ProfileFragment extends Fragment {
                 }
             });
         } else {
-            // Not logged in — hide all user-specific views
             loggedInContainer.setVisibility(View.GONE);
             loginButton.setVisibility(View.VISIBLE);
             registerButton.setVisibility(View.VISIBLE);
         }
     }
 }
-

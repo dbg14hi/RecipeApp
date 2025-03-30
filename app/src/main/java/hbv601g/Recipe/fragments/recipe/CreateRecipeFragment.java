@@ -5,11 +5,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.Toast;
-import android.widget.CheckBox;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -19,18 +18,20 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import hbv601g.Recipe.R;
 
-
+/**
+ * A Fragment that allows users to create a new recipe and store it in Firestore.
+ */
 public class CreateRecipeFragment extends Fragment {
 
     private FirebaseAuth auth;
@@ -38,10 +39,17 @@ public class CreateRecipeFragment extends Fragment {
     private EditText titleInput, descriptionInput, ingredientsInput, cookingTimeInput;
     private LinearLayout dietaryRestrictionsContainer, mealCategoriesContainer;
     private Button submitRecipeButton;
-
-    private final List<String> allDietaryRestrictions = Arrays.asList("Nut-free", "Vegan", "Vegetarian", "Gluten-free", "Dairy-free"); // Example data
+    private final List<String> allDietaryRestrictions = Arrays.asList("Nut-free", "Vegan", "Vegetarian", "Gluten-free", "Dairy-free");
     private final List<String> allMealCategories = Arrays.asList("Breakfast", "Lunch", "Dinner", "Snacks");
 
+    /**
+     * Inflates the fragment layout and initializes UI components.
+     *
+     * @param inflater           The LayoutInflater used to inflate views.
+     * @param container          The parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState Saved state bundle for restoring state.
+     * @return The created View instance for the fragment.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -60,7 +68,6 @@ public class CreateRecipeFragment extends Fragment {
         cookingTimeInput = view.findViewById(R.id.cookingTimeInput);
         dietaryRestrictionsContainer = view.findViewById(R.id.dietaryRestrictionsContainer);
         mealCategoriesContainer = view.findViewById(R.id.mealCategoriesContainer);
-
         submitRecipeButton = view.findViewById(R.id.submitRecipeButton);
 
         for (String restriction : allDietaryRestrictions) {
@@ -90,6 +97,9 @@ public class CreateRecipeFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Creates a new recipe and stores it in Firestore.
+     */
     private void createRecipe() {
         String title = titleInput.getText().toString().trim();
         String description = descriptionInput.getText().toString().trim();
@@ -119,7 +129,6 @@ public class CreateRecipeFragment extends Fragment {
 
         List<String> ingredients = Arrays.asList(ingredientsText.split("\\s*,\\s*"));
 
-
         int cookingTime;
         try {
             cookingTime = Integer.parseInt(cookingTimeStr);
@@ -129,7 +138,6 @@ public class CreateRecipeFragment extends Fragment {
         }
 
         String userId = auth.getCurrentUser().getUid();
-
 
         Map<String, Object> recipe = new HashMap<>();
         recipe.put("title", title);
@@ -149,7 +157,6 @@ public class CreateRecipeFragment extends Fragment {
                             .addOnSuccessListener(aVoid -> {
                                 Toast.makeText(getContext(), "Recipe added!", Toast.LENGTH_SHORT).show();
 
-                                // Navigate back to HomeFragment
                                 NavHostFragment.findNavController(CreateRecipeFragment.this)
                                         .navigate(R.id.action_createRecipeFragment_to_navigation_home);
                             })
@@ -160,6 +167,9 @@ public class CreateRecipeFragment extends Fragment {
                         Toast.makeText(getContext(), "Failed to add recipe", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Cleans up the fragment when it is destroyed, resetting the back button state.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -167,6 +177,4 @@ public class CreateRecipeFragment extends Fragment {
             ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         }
     }
-
 }
-
