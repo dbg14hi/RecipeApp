@@ -1,7 +1,6 @@
 package hbv601g.Recipe.repository;
 
 import android.util.Log;
-
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -17,13 +16,19 @@ import java.util.Map;
 import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.entities.Review;
 
+/**
+ * A repository for handling Firestore database operations for recipe, reviews and favorites.
+ *
+ */
 public class FirestoreRepository {
-
     private final FirebaseFirestore db;
     private final CollectionReference recipeCollection;
     private final CollectionReference reviewCollection;
     private final CollectionReference usersCollection;
 
+    /**
+     * Initalizes the Firestore repository.
+     */
     public FirestoreRepository() {
         db = FirebaseFirestore.getInstance();
         recipeCollection = db.collection("recipes");
@@ -31,6 +36,11 @@ public class FirestoreRepository {
         usersCollection = db.collection("users");
     }
 
+    /**
+     * Interface for Firestore callback.
+     *
+     * @param <T> The type of result expected from the operation.
+     */
     public interface FirestoreCallback<T> {
         void onSuccess(T result);
         void onFailure(Exception e);
@@ -40,6 +50,11 @@ public class FirestoreRepository {
     // RECIPE OPERATIONS
     // ================
 
+    /**
+     * Handles the adding of a recipe to the Firestore database.
+     *
+     * @param recipe The recipe added to the database.
+     */
     public void addRecipe(Recipe recipe) {
         recipeCollection.add(recipe)
                 .addOnSuccessListener(documentReference -> {
@@ -55,7 +70,11 @@ public class FirestoreRepository {
                         System.err.println("Error adding recipe: " + e.getMessage()));
     }
 
-
+    /**
+     * Gets the recipe from the Firestore database.
+     *
+     * @param callback Handles the callback for getting the recipe.
+     */
     public void getRecipes(RecipeCallback callback) {
         recipeCollection.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -64,13 +83,13 @@ public class FirestoreRepository {
                     System.out.println("📄 Document data: " + document.getData());
 
                     String recipeId = document.getId();
-                    String title = document.getString("title");  // Fetch title (instead of name)
-                    String description = document.getString("description");  // Fetch description
+                    String title = document.getString("title");
+                    String description = document.getString("description");
                     int cookingTime = document.getLong("cookingTime") != null ? document.getLong("cookingTime").intValue() : 0;
                     Object ingredientsObj = document.get("ingredients");
                     Object dietaryRestrictionsObj = document.get("dietaryRestrictions");
                     Object mealCategoriesObj = document.get("mealCategories");
-                    Timestamp timestamp = document.getTimestamp("timestamp"); // Get timestamp
+                    Timestamp timestamp = document.getTimestamp("timestamp");
 
                     List<String> ingredients = new ArrayList<>();
                     if (ingredientsObj instanceof String) {
@@ -101,7 +120,7 @@ public class FirestoreRepository {
                     recipe.setIngredients(ingredients);
                     recipe.setDietaryRestrictions(dietaryRestrictions);
                     recipe.setMealCategories(mealCategories);
-                    recipe.setTimestamp(timestamp);  // Set timestamp
+                    recipe.setTimestamp(timestamp);
 
                     recipes.add(recipe);
                 }
@@ -114,12 +133,16 @@ public class FirestoreRepository {
         });
     }
 
-
-
     // ================
     // FAVORITES OPERATIONS
     // ================
 
+    /**
+     * For getting the Id of the recipe that is users favorite.
+     *
+     * @param userId The Id of the user that has the favorite recipe.
+     * @param callback The callback for the retrieval of the favorite recipe.
+     */
     public void getFavoriteRecipeIds(String userId, FirestoreCallback<List<String>> callback) {
         db.collection("users").document(userId)
                 .get()
@@ -134,6 +157,13 @@ public class FirestoreRepository {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    /**
+     * Handles the removal of the favorite recipe from the database.
+     *
+     * @param userId The Id of the user who has the favorite recipe.
+     * @param recipeId The Id of the recipe.
+     * @param callback The callback for the removal of the favorite recipe.
+     */
     public void removeFavorite(String userId, String recipeId, FirestoreCallback<Void> callback) {
         DocumentReference userRef = db.collection("users").document(userId);
         userRef.get().addOnSuccessListener(doc -> {
@@ -148,9 +178,15 @@ public class FirestoreRepository {
         }).addOnFailureListener(callback::onFailure);
     }
 
+    /**
+     * Handles getting the list of recipes from the database.
+     *
+     * @param recipeIds The list of recipe Ids from the database.
+     * @param callback Callback for getting the list of recipe Ids.
+     */
     public void getRecipesByIds(List<String> recipeIds, RecipeCallback callback) {
         if (recipeIds == null || recipeIds.isEmpty()) {
-            callback.onRecipesLoaded(new ArrayList<>()); // Return empty list if no favorites
+            callback.onRecipesLoaded(new ArrayList<>());
             return;
         }
 
@@ -177,6 +213,11 @@ public class FirestoreRepository {
     // REVIEW OPERATIONS
     // ================
 
+    /**
+     * Adds a review to the Firestore database.
+     *
+     * @param review The review added to the database.
+     */
     public void addReview(Review review) {
         reviewCollection.add(review)
                 .addOnSuccessListener(documentReference ->
@@ -185,6 +226,10 @@ public class FirestoreRepository {
                         System.err.println("Error adding review: " + e.getMessage()));
     }
 
+    /**
+     * Gets the reviews for every recipe from the database.
+     *
+     */
     public void getReviewsByRecipe(String recipeId, ReviewCallback callback) {
         reviewCollection.whereEqualTo("recipeId", recipeId)
                 .get()
@@ -202,6 +247,12 @@ public class FirestoreRepository {
                 });
     }
 
+    /**
+     * Get the Id of the review from the database.
+     *
+     * @param reviewId The Id of the review.
+     * @param callback The callback for getting the Review Id.
+     */
     public void getReviewById(String reviewId, ReviewByIdCallback callback) {
         reviewCollection.document(reviewId)
                 .get()
@@ -216,6 +267,12 @@ public class FirestoreRepository {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    /**
+     * Updates the review in the database.
+     *
+     * @param reviewId The updated reviewId.
+     * @param newComment The new comment for the review.
+     */
     public void updateReview(String reviewId, String newComment) {
         reviewCollection.document(reviewId)
                 .update("comment", newComment)
@@ -225,6 +282,11 @@ public class FirestoreRepository {
                         System.err.println("Error updating review: " + e.getMessage()));
     }
 
+    /**
+     * Deletes the review from the database.
+     *
+     * @param reviewId The review Id.
+     */
     public void deleteReview(String reviewId) {
         reviewCollection.document(reviewId).delete()
                 .addOnSuccessListener(aVoid ->
@@ -237,23 +299,34 @@ public class FirestoreRepository {
     // CALLBACK INTERFACES
     // ================
 
+    /**
+     * The callback interface for the recipe for the Firestore database.
+     */
     public interface RecipeCallback {
         void onRecipesLoaded(List<Recipe> recipes);
         void onFailure(Exception e);
     }
 
+    /**
+     * The callback interface for the favorites recipe for the Firestore database.
+     */
     public interface FavoriteCallback {
         void onResult(boolean isFavorite);
     }
 
+    /**
+     * The callback interface for the review for the Firestore database.
+     */
     public interface ReviewCallback {
         void onReviewsLoaded(List<Review> reviews);
         void onFailure(Exception e);
     }
 
+    /**
+     * The callback interface for the review by Id for the Firestore database.
+     */
     public interface ReviewByIdCallback {
         void onReviewLoaded(Review review);
         void onFailure(Exception e);
     }
-
 }
