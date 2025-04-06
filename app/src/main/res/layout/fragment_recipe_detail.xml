@@ -4,7 +4,8 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    tools:ignore="ExtraText">
 
     <ImageView
         android:id="@+id/recipeImage"
@@ -71,7 +72,6 @@
         android:text="Add Review"
         android:layout_gravity="center"/>
 
-    <!-- Schedule Recipe Button -->
     <Button
         android:id="@+id/scheduleRecipeButton"
         android:layout_width="wrap_content"
@@ -79,10 +79,26 @@
         android:text="Schedule Recipe"
         android:layout_gravity="center"/>
 
+    <Button
+        android:id="@+id/toggleReviewButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show Reviews"
+        android:layout_gravity="center"/>
+
+    <LinearLayout
+        android:id="@+id/reviewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:orientation="vertical">
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/reviewRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp" />
+    </LinearLayout>
+
 </LinearLayout>
 
