@@ -1,5 +1,6 @@
 package hbv601g.Recipe.fragments.review;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +22,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
     private List<Review> reviews;
 
     /**
-     * Constructor for ReviewAdater
+     * Constructor for ReviewAdapter
      *
      * @param reviews List of reviews to be displayed
      */
@@ -86,5 +87,16 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
             reviewComment = itemView.findViewById(R.id.reviewComment);
             reviewRating = itemView.findViewById(R.id.reviewRating);
         }
+    }
+
+    /**
+     * Updates the review list
+     *
+     * @param newReviews
+     */
+    @SuppressLint("NotifyDataSetChanged")
+    public void updateReviews(List<Review> newReviews) {
+        this.reviews = newReviews;
+        notifyDataSetChanged();
     }
 }

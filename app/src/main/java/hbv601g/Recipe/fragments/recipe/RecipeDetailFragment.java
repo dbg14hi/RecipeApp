@@ -19,9 +19,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +31,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -123,12 +126,36 @@ public class RecipeDetailFragment extends Fragment {
         recipeImageView = view.findViewById(R.id.recipeImage);
         Button reviewButton;
         reviewButton = view.findViewById(R.id.reviewButton);
-        RecyclerView reviewRecyclerView; //Arna
+        RecyclerView reviewRecyclerView;
         reviewRecyclerView = view.findViewById(R.id.reviewRecyclerView);
         reviewRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        reviewList = new ArrayList<>(); //Arna
+        reviewList = new ArrayList<>();
         reviewAdapter = new ReviewAdapter(reviewList);
         reviewRecyclerView.setAdapter(reviewAdapter);
+        Button toggleReviewButton = view.findViewById(R.id.toggleReviewButton);
+        LinearLayout reviewContainer = view.findViewById(R.id.reviewContainer);
+
+        /**
+         * Divider for clearer review show
+         *
+         */
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(
+                reviewRecyclerView.getContext(), LinearLayoutManager.VERTICAL);
+        reviewRecyclerView.addItemDecoration(dividerItemDecoration);
+
+        /**
+         * The review button that hides and shows the reviews on click listener
+         *
+         */
+        toggleReviewButton.setOnClickListener(v -> {
+            if (reviewContainer.getVisibility() == View.VISIBLE) {
+                reviewContainer.setVisibility(View.GONE);
+                toggleReviewButton.setText("Show Reviews");
+            } else {
+                reviewContainer.setVisibility(View.VISIBLE);
+                toggleReviewButton.setText("Hide Reviews");
+            }
+        });
 
         Bundle args = getArguments();
         if (args != null) {
@@ -177,6 +204,15 @@ public class RecipeDetailFragment extends Fragment {
         return view;
     }
 
+    /**
+     * When you add review it will go right away to the review list //6. apríl
+     */
+    @Override
+    public void onResume() {
+        super.onResume();
+        fetchReviews();
+    }
+
     private void displayRecipeImage() {
         cloudinaryRepository.getImageFromCloudinary(recipeId, new CloudinaryRepository.CloudinaryCallback() {
             @Override
@@ -195,7 +231,6 @@ public class RecipeDetailFragment extends Fragment {
                     });
                 }
             }
-
             @Override
             public void onError(String errorMessage) {
                 Log.e("RecipeDetailFragment", "Failed to load image from Cloudinary: " + errorMessage);
@@ -341,7 +376,32 @@ public class RecipeDetailFragment extends Fragment {
     }
 
     /**
-     * Setup for scheduling for the shcedule recipe button
+     * Filters reviews by their ratings
+     *
+     * @param filter filter for reviews
+     */
+    private void filterReviewsByRating(String filter) {
+        if (filter.equals("All")) {
+            reviewAdapter.updateReviews(reviewList); // Show all
+            return;
+        }
+
+        try {
+            int selectedRating = Integer.parseInt(filter.substring(0, 1)); // e.g., "5 Stars" -> 5
+            List<Review> filtered = new ArrayList<>();
+            for (Review review : reviewList) {
+                if (review.getRating() == selectedRating) {
+                    filtered.add(review);
+                }
+            }
+            reviewAdapter.updateReviews(filtered); // You may need to add this method in the adapter
+        } catch (Exception e) {
+            Log.e("ReviewFilter", "Invalid filter format: " + filter, e);
+        }
+    }
+
+    /**
+     * Setup for scheduling for the schedule recipe button
      */
     private void setupScheduleButton() {
         _binding.scheduleRecipeButton.setOnClickListener(v -> {
