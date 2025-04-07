@@ -98,15 +98,30 @@
         app:popUpTo="@id/navigation_home"
         app:popUpToInclusive="true" />
 
+    <!-- Recipe Detail Fragment -->
     <fragment
         android:id="@+id/recipeDetailFragment"
         android:name="hbv601g.Recipe.fragments.recipe.RecipeDetailFragment"
         android:label="Recipe Detail"
-        tools:layout="@layout/fragment_recipe_detail" />
+        tools:layout="@layout/fragment_recipe_detail">
 
+    <action
+        android:id="@+id/action_recipeDetailFragment_to_editRecipeFragment"
+        app:destination="@id/editRecipeFragment" />
+    </fragment>
+
+    <!-- Review Fragment -->
     <fragment
         android:id="@+id/newReviewFragment"
         android:name="hbv601g.Recipe.fragments.review.NewReviewFragment"
         android:label="New Review"
         tools:layout="@layout/fragment_review" />
+
+    <!-- Edit Recipe Fragment -->
+    <fragment
+        android:id="@+id/editRecipeFragment"
+        android:name="hbv601g.Recipe.fragments.recipe.EditRecipeFragment"
+        android:label="Edit Recipe"
+        tools:layout="@layout/fragment_edit_recipe" />
+
 </navigation>

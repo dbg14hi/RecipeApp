@@ -11,7 +11,8 @@ import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-    import androidx.fragment.app.Fragment
+import android.widget.Button
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -37,6 +38,9 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     private lateinit var adapter: RecipeAdapter
     private lateinit var createRecipeFab: FloatingActionButton
     private val db = FirebaseFirestore.getInstance()
+
+    private lateinit var filterButton: Button
+    private lateinit var filterContainer: LinearLayout
 
     var selectedDietaryRestrictions = mutableListOf<String>()
     var selectedMealCategories = mutableListOf<String>()
@@ -127,7 +131,7 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     }
 
     private fun setupSortingDropdown() {
-        val sortingOptions = arrayOf("Name", "Date Added")
+        val sortingOptions = arrayOf("A-Z", "Z-A", "Newest First", "Oldest First" )
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, sortingOptions)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
