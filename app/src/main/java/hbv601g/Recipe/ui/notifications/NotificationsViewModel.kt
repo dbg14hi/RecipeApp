@@ -9,13 +9,17 @@ import com.google.firebase.firestore.Query
 
 import hbv601g.Recipe.entities.NotificationModel
 
+/**
+ * A view model for the notifications.
+ *
+ */
 class NotificationsViewModel : ViewModel() {
 
-    private val _notifications = MutableLiveData<List<NotificationModel>>()  // LiveData for notifications
+    private val _notifications = MutableLiveData<List<NotificationModel>>()
     val notifications: LiveData<List<NotificationModel>> get() = _notifications
 
     init {
-        fetchNotificationsFromFirestore()  // Fetch data when ViewModel is created
+        fetchNotificationsFromFirestore()
     }
 
     fun refreshNotifications() {
@@ -40,11 +44,10 @@ class NotificationsViewModel : ViewModel() {
                         val timestamp = doc.getLong("timestamp") ?: 0L
                         notificationList.add(NotificationModel(recipeTitle, timestamp))
                     }
-
-                    _notifications.value = notificationList  // Update LiveData
+                    _notifications.value = notificationList
                 }
                 .addOnFailureListener { e ->
-                    _notifications.value = emptyList()  // Ensure LiveData is never null
+                    _notifications.value = emptyList()
                 }
         }
     }

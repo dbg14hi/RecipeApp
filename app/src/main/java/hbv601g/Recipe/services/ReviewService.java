@@ -8,15 +8,30 @@ import com.google.firebase.auth.FirebaseUser;
 
 import hbv601g.Recipe.entities.Review;
 
+/**
+ * A service class that handles user reviews in Firestore database.
+ * Handles the logic for adding reviews to a recipe.
+ *
+ */
 public class ReviewService {
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
 
+    /**
+     * Constructs a new ReviewService and initializes Firebase instances.
+     *
+     */
     public ReviewService() {
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
     }
 
+    /**
+     * Adds a review to a special recipe in the Firestore database.
+     *
+     * @param review he {@link Review} object to be added. Must contain a valid recipe ID.
+     * @param listener The callback listener that reports success or failure of the operation.
+     */
     public void addReview(Review review, OnReviewAddedListener listener) {
         FirebaseUser user = auth.getCurrentUser();
         if (user == null) {
@@ -45,7 +60,10 @@ public class ReviewService {
                 });
     }
 
-
+    /**
+     * Callback interface for adding a review to a recipe.
+     *
+     */
     public interface OnReviewAddedListener {
         void onSuccess(String reviewId);
         void onFailure(String errorMessage);
