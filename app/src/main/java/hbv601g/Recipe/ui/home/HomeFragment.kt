@@ -62,20 +62,6 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         recyclerView = binding.recyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-
-        // Filter visibility toggle on and off
-        filterButton = binding.filterButton
-        filterContainer = binding.filterContainer
-
-        filterButton.setOnClickListener {
-            if (filterContainer.visibility == View.GONE) {
-                filterContainer.visibility = View.VISIBLE
-            } else {
-                filterContainer.visibility = View.GONE
-            }
-        }
-
-        // Make create recipe button
         createRecipeFab = binding.createRecipeFab
 
         if (FirebaseAuth.getInstance().currentUser != null) {
@@ -90,7 +76,6 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         adapter = RecipeAdapter(emptyList(), this)
         recyclerView.adapter = adapter
 
-        // Add category checkboxes and add listener
         val dietaryRestrictions = listOf("Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free", "Nut-free")
         dietaryRestrictions.forEach { category ->
             val checkBox = CheckBox(context)
@@ -111,7 +96,6 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             mealCategoriesLayout.addView(checkBox)
         }
 
-        // Search for recipes and update view
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
@@ -134,10 +118,8 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
         }
 
-        // Setup sorting dropdown
         setupSortingDropdown()
 
-        // Fetch recipes in real-time
         fetchRecipesInRealTime()
 
         return root
