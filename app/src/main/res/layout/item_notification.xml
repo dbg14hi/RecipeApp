@@ -9,7 +9,7 @@
         android:id="@+id/notification_recipe_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Recipe Title"
+        android:text="@string/recipe_title"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -17,7 +17,7 @@
         android:id="@+id/notification_timestamp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Timestamp"
+        android:text="@string/timestamp"
         android:textSize="14sp"
         android:textColor="@android:color/darker_gray" />
 </LinearLayout>

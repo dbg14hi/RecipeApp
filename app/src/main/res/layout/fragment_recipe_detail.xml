@@ -61,14 +61,14 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         app:srcCompat="@drawable/ic_favorite_border"
-        android:contentDescription="Favorite"
+        android:contentDescription="@string/favorite"
         xmlns:app="http://schemas.android.com/apk/res-auto"/>
 
     <Button
         android:id="@+id/edit_recipe_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Edit Recipe"
+        android:text="@string/edit_recipe"
         android:visibility="gone"
         android:layout_marginTop="12dp"
         />
@@ -78,21 +78,21 @@
         android:id="@+id/reviewButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Review"
+        android:text="@string/add_review"
         android:layout_gravity="center"/>
 
     <Button
         android:id="@+id/scheduleRecipeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Schedule Recipe"
+        android:text="@string/schedule_recipe"
         android:layout_gravity="center"/>
 
     <Button
         android:id="@+id/toggleReviewButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Show Reviews"
+        android:text="@string/show_reviews"
         android:layout_gravity="center"/>
 
     <LinearLayout

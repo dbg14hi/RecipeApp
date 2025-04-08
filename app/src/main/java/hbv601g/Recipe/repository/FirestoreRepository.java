@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.entities.Review;
@@ -192,6 +193,8 @@ public class FirestoreRepository {
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         List<Recipe> recipesList = new ArrayList<>();
+        int totalRequests = recipeIds.size();
+        AtomicInteger completedRequests = new AtomicInteger(0);  // Keeps track of completed requests
 
         for (String recipeId : recipeIds) {
             db.collection("recipes").document(recipeId).get()
@@ -201,13 +204,21 @@ public class FirestoreRepository {
                             recipesList.add(recipe);
                         }
 
-                        if (recipesList.size() == recipeIds.size()) {
+                        // Check if all requests have completed
+                        if (completedRequests.incrementAndGet() == totalRequests) {
                             callback.onRecipesLoaded(recipesList);
                         }
                     })
-                    .addOnFailureListener(e -> callback.onFailure(e));
+                    .addOnFailureListener(e -> {
+                        callback.onFailure(e);
+                        if (completedRequests.incrementAndGet() == totalRequests) {
+                            callback.onRecipesLoaded(recipesList);  // Return whatever has been fetched
+                        }
+                    });
         }
     }
+
+
 
     // ================
     // REVIEW OPERATIONS

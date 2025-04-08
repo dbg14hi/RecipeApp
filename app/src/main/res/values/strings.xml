@@ -24,6 +24,32 @@
     <string name="cooking_time_minutes">Cooking Time (minutes)</string>
     <string name="save_changes">Save Changes</string>
     <string name="delete_recipe">Delete Recipe</string>
+    <string name="recipe_title">Recipe Title</string>
+    <string name="timestamp">Timestamp</string>
+    <string name="ingredients">Ingredients</string>
+    <string name="recipe_name">Recipe Name</string>
+    <string name="recipe_image">Recipe Image</string>
+    <string name="remove">Remove</string>
+    <string name="password">Password</string>
+    <string name="sign_up">SIGN UP</string>
+    <string name="already_have_an_account_login">ALREADY HAVE AN ACCOUNT? LOGIN</string>
+    <string name="review">Review</string>
+    <string name="write_your_review_here">Write your review here</string>
+    <string name="save">Save</string>
+    <string name="submit">Submit</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="favorite">Favorite</string>
+    <string name="edit_recipe">Edit Recipe</string>
+    <string name="add_review">Add Review</string>
+    <string name="schedule_recipe">Schedule Recipe</string>
+    <string name="show_reviews">Show Reviews</string>
+    <string name="scheduled_recipe_notifications">Scheduled Recipe Notifications</string>
+    <string name="create_account">CREATE ACCOUNT</string>
+    <string name="filter">Filter</string>
+    <string name="change_image">Change Image</string>
+    <string name="meal_categories">Meal Categories</string>
+    <string name="create_recipe">CREATE RECIPE</string>
 
     <string-array name="meal_categories">
         <item>Breakfast</item>

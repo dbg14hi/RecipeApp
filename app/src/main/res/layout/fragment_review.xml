@@ -10,7 +10,7 @@
         android:id="@+id/reviewTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Review"
+        android:text="@string/review"
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_gravity="center_horizontal"
@@ -30,7 +30,7 @@
         android:id="@+id/commentEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Write your review here"
+        android:hint="@string/write_your_review_here"
         android:padding="8dp"
         android:background="@android:drawable/editbox_background"
         android:minHeight="100dp"
@@ -52,14 +52,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Save"
+            android:text="@string/save"
             android:backgroundTint="@color/teal_700"/>
 
         <Button
             android:id="@+id/submitButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Submit" />
+            android:text="@string/submit" />
 
         <!-- Eyða hnappur-->
         <Button
@@ -67,7 +67,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Delete"
+            android:text="@string/delete"
             android:backgroundTint="@android:color/holo_red_dark"/>
 
         <!-- Hætta við hnappur -->
@@ -76,7 +76,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Cancel"
+            android:text="@string/cancel"
             android:backgroundTint="@android:color/darker_gray"/>
     </LinearLayout>
 

@@ -18,7 +18,7 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:scaleType="centerCrop"
-            android:contentDescription="Recipe Image"
+            android:contentDescription="@string/recipe_image"
             android:src="@drawable/ic_placeholder" />
 
         <LinearLayout
@@ -32,7 +32,7 @@
                 android:id="@+id/recipeTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Recipe Title"
+                android:text="@string/recipe_title"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -40,7 +40,7 @@
                 android:id="@+id/recipeDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Description"
+                android:text="@string/description"
                 android:textSize="14sp"
                 android:maxLines="2"
                 android:ellipsize="end"
@@ -50,11 +50,10 @@
                 android:id="@+id/removeFavoriteButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Remove"
+                android:text="@string/remove"
                 android:textSize="12sp"
                 android:layout_marginTop="8dp"
                 android:backgroundTint="@android:color/holo_red_light" />
         </LinearLayout>
-
     </LinearLayout>
 </androidx.cardview.widget.CardView>

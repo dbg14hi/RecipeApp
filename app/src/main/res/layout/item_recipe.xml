@@ -9,7 +9,7 @@
         android:id="@+id/recipe_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Recipe Name"
+        android:text="@string/recipe_name"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -17,6 +17,6 @@
         android:id="@+id/recipe_ingredients"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ingredients"
+        android:text="@string/ingredients"
         android:textSize="14sp" />
 </LinearLayout>
