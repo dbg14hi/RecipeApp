@@ -25,6 +25,15 @@ import hbv601g.Recipe.R
 import hbv601g.Recipe.databinding.FragmentHomeBinding
 import hbv601g.Recipe.entities.Recipe
 
+/**
+ * HomeFragment is responsible for displaying the home screen of the recipe app.
+ * It includes a list of recipes, a search bar, filters for dietary restrictions
+ * and meal categories, and a floating action button to create a new recipe.
+ *
+ * Implements real-time updates from Firebase Firestore and observes ViewModel
+ * LiveData for recipe filtering and error handling.
+ *
+ */
 class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
     private var _binding: FragmentHomeBinding? = null
@@ -41,6 +50,10 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     var selectedDietaryRestrictions = mutableListOf<String>()
     var selectedMealCategories = mutableListOf<String>()
 
+    /**
+     * Inflates the fragment's layout, sets up the UI, observers, listeners,
+     * and Firebase snapshot listener.
+     */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -121,11 +134,17 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         return root
     }
 
+    /**
+     * Clears the binding when the view is destroyed to avoid memory leaks.
+     */
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
+    /**
+     * Initializes sorting options for recipe list.
+     */
     private fun setupSortingDropdown() {
         val sortingOptions = arrayOf("Name", "Date Added")
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, sortingOptions)
@@ -141,6 +160,9 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         }
     }
 
+    /**
+     * Fetches recipes from Firestore in real-time and updates the adapter.
+     */
     private fun fetchRecipesInRealTime() {
         db.collection("recipes")
             .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -171,6 +193,11 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             }
     }
 
+    /**
+     * Handles recipe click events and navigates to the recipe detail screen.
+     *
+     * @param recipe The recipe that was clicked.
+     */
     override fun onRecipeClick(recipe: Recipe) {
         val bundle = Bundle().apply {
             putString("recipeId", recipe.recipeId)
@@ -189,6 +216,10 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         navController.navigate(R.id.action_navigation_home_to_recipeDetailFragment, bundle)
     }
 
+    /**
+     * Updates selected dietary and meal categories based on checkbox states,
+     * and notifies the ViewModel.
+     */
     private fun updateSelectedCategories() {
         val dietaryRestrictions = mutableListOf<String>()
         for (i in 0 until dietaryRestrictionsLayout.childCount) {

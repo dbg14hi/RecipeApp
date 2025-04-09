@@ -1,11 +1,19 @@
 package hbv601g.Recipe.ui.home
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import hbv601g.Recipe.entities.Recipe
 import hbv601g.Recipe.repository.FirestoreRepository
+
+/**
+ * ViewModel for the Home screen.
+ *
+ * Responsible for managing the data and business logic for displaying recipes,
+ * including loading, filtering, and sorting them. Also holds the state for
+ * user-selected dietary restrictions and meal categories, as well as the current
+ * search query.
+*/
 
 class HomeViewModel : ViewModel() {
 
@@ -34,6 +42,11 @@ class HomeViewModel : ViewModel() {
         loadRecipes()
     }
 
+    /**
+     * Fetches recipes from Firestore using the repository and updates LiveData.
+     * On success, updates both recipesLiveData and filteredRecipesLiveData.
+     * On failure, sets an error message.
+     */
     fun loadRecipes() {
         repository.getRecipes(object : FirestoreRepository.RecipeCallback {
             override fun onRecipesLoaded(recipes: List<Recipe>) {
@@ -47,6 +60,14 @@ class HomeViewModel : ViewModel() {
         })
     }
 
+    /**
+     * Filters the list of recipes based on the provided search query,
+     * selected dietary restrictions, and selected meal categories.
+     *
+     * @param query The text to search for in recipe title, description, or ingredients.
+     * @param selectedDietaryRestrictions The dietary filters selected by the user.
+     * @param selectedMealCategories The meal category filters selected by the user.
+     */
     fun filterRecipes(query: String, selectedDietaryRestrictions: List<String>, selectedMealCategories: List<String>) {
         _searchQuery.value = query;
         val recipes = _recipesLiveData.value ?: emptyList()
@@ -71,6 +92,11 @@ class HomeViewModel : ViewModel() {
         _filteredRecipesLiveData.postValue(filtered)
     }
 
+    /**
+     * Sorts the currently filtered recipes by the specified option.
+     *
+     * @param option The sorting criteria, either "Name" or "Date Added".
+     */
     fun sortRecipes(option: String) {
         val recipes = _filteredRecipesLiveData.value ?: emptyList()
         val sortedList = when (option) {
@@ -81,6 +107,12 @@ class HomeViewModel : ViewModel() {
         _filteredRecipesLiveData.postValue(sortedList)
     }
 
+    /**
+     * Sets selected dietary and meal category filters and reapplies recipe filtering.
+     *
+     * @param dietaryRestrictions The new list of dietary restriction filters.
+     * @param mealCategories The new list of meal category filters.
+     */
     fun setSelectedCategories(dietaryRestrictions: List<String>, mealCategories: List<String>) {
         _selectedDietaryRestrictions.value = dietaryRestrictions
         _selectedMealCategories.value = mealCategories

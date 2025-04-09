@@ -8,6 +8,10 @@ import androidx.recyclerview.widget.RecyclerView
 import hbv601g.Recipe.R
 import hbv601g.Recipe.entities.Recipe
 
+/**
+ * Adapter class for displaying a list of recipes in a Recyclerview.
+ *
+ */
 class RecipeAdapter(
     private var recipes: List<Recipe>,
     private val listener: OnRecipeClickListener
