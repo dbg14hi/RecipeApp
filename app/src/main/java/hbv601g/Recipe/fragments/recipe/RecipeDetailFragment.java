@@ -124,6 +124,7 @@ public class RecipeDetailFragment extends Fragment {
         mealCategoriesTextView = view.findViewById(R.id.recipe_meal_categories);
         favoriteButton = view.findViewById(R.id.favoriteButton);
         recipeImageView = view.findViewById(R.id.recipeImage);
+        Button editButton = view.findViewById(R.id.edit_recipe_button);
         Button reviewButton;
         reviewButton = view.findViewById(R.id.reviewButton);
         RecyclerView reviewRecyclerView;
@@ -182,7 +183,31 @@ public class RecipeDetailFragment extends Fragment {
 
             cookingTimeTextView.setText("Cooking Time: " + cookingTime + " minutes");
 
+            FirebaseFirestore.getInstance().collection("recipes").document(recipeId).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String creatorId = documentSnapshot.getString("userId");
+                            if (userId.equals(creatorId)) {
+                                editButton.setVisibility(View.VISIBLE);
+                            } else {
+                                editButton.setVisibility(View.GONE);
+                            }
+                        }
+                    });
+
             checkIfFavorite();
+
+            editButton.setOnClickListener(v -> {
+                Bundle editBundle = new Bundle();
+                editBundle.putString("recipeId", recipeId);
+                editBundle.putString("recipeTitle", title);
+                editBundle.putString("recipeDescription", description);
+                editBundle.putStringArrayList("recipeIngredients", ingredients);
+                editBundle.putInt("recipeCookingTime", cookingTime);
+
+                NavHostFragment.findNavController(RecipeDetailFragment.this)
+                        .navigate(R.id.action_recipeDetailFragment_to_editRecipeFragment, editBundle);
+            });
 
             favoriteButton.setOnClickListener(v -> toggleFavorite(userId, recipeId));
             reviewButton.setOnClickListener(v -> openReviewFragment());
@@ -210,8 +235,39 @@ public class RecipeDetailFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        if (recipeId != null && !recipeId.isEmpty()) {
+            reloadRecipeData();
+        }
         fetchReviews();
     }
+
+    private void reloadRecipeData() {
+        FirebaseFirestore.getInstance().collection("recipes").document(recipeId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String title = documentSnapshot.getString("title");
+                        String description = documentSnapshot.getString("description");
+                        List<String> ingredients = (List<String>) documentSnapshot.get("ingredients");
+                        Long cookingTimeLong = documentSnapshot.getLong("cookingTime");
+
+                        int cookingTime = cookingTimeLong != null ? cookingTimeLong.intValue() : 0;
+
+                        titleTextView.setText(title);
+                        descriptionTextView.setText(description);
+                        if (ingredients != null && !ingredients.isEmpty()) {
+                            ingredientsTextView.setText(TextUtils.join(", ", ingredients));
+                        } else {
+                            ingredientsTextView.setText("No ingredients listed");
+                        }
+                        cookingTimeTextView.setText("Cooking Time: " + cookingTime + " minutes");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed to load updated recipe", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
+    }
+
 
     private void displayRecipeImage() {
         cloudinaryRepository.getImageFromCloudinary(recipeId, new CloudinaryRepository.CloudinaryCallback() {

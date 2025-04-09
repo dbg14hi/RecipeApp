@@ -2,7 +2,7 @@ package hbv601g.Recipe.fragments.user;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;;
+import java.util.HashMap;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;

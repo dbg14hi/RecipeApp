@@ -100,8 +100,10 @@ class HomeViewModel : ViewModel() {
     fun sortRecipes(option: String) {
         val recipes = _filteredRecipesLiveData.value ?: emptyList()
         val sortedList = when (option) {
-            "Name" -> recipes.sortedBy { it.title }
-            "Date Added" -> recipes.sortedByDescending { it.timestamp }
+            "A-Z" -> recipes.sortedBy { it.title }
+            "Z-A" -> recipes.sortedByDescending { it.title }
+            "Newest First" -> recipes.sortedByDescending { it.timestamp }
+            "Oldest First" -> recipes.sortedBy { it.timestamp }
             else -> recipes
         }
         _filteredRecipesLiveData.postValue(sortedList)
