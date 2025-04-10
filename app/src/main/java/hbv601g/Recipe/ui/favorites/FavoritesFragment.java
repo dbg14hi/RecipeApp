@@ -23,8 +23,11 @@ import hbv601g.Recipe.entities.Recipe;
 import hbv601g.Recipe.repository.FirestoreRepository;
 import hbv601g.Recipe.ui.favorites.FavoritesAdapter;
 
+/**
+ * A fragment for the favorites recipes of the user, for seeing the favorite recipe and removing it
+ * from favorites.
+ */
 public class FavoritesFragment extends Fragment {
-
     private FragmentFavoritesBinding binding;
     private FirebaseAuth auth;
     private FirestoreRepository firestoreRepository;
@@ -32,6 +35,19 @@ public class FavoritesFragment extends Fragment {
     private List<Recipe> favoriteRecipes;
     private FavoritesAdapter favoritesAdapter;
 
+    /**
+     * Inflates the layout and sets up necessary components.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate
+     * any views in the fragment,
+     * @param container If non-null, this is the parent view that the fragment's
+     * UI should be attached to.  The fragment should not add the view itself,
+     * but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     *
+     * @return The view of the fragment.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentFavoritesBinding.inflate(inflater, container, false);
@@ -41,7 +57,6 @@ public class FavoritesFragment extends Fragment {
 
         firestoreRepository = new FirestoreRepository();
 
-        // Set up RecyclerView
         favoritesRecyclerView = binding.favoritesRecyclerView;
         favoritesRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
@@ -49,21 +64,26 @@ public class FavoritesFragment extends Fragment {
         favoritesAdapter = new FavoritesAdapter(favoriteRecipes, this::removeFromFavorites, this::navigateToRecipeDetails);
         favoritesRecyclerView.setAdapter(favoritesAdapter);
 
-        // Load user's favorites
         if (auth.getCurrentUser() != null) {
             loadUserFavorites(auth.getCurrentUser().getUid());
         }
-
         return root;
     }
 
+    /**
+     * Clears the binding reference when the view is destroyed.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
-    // Navigation to the recipe clicked
+    /**
+     * Navigation to the recipe clicked.
+     *
+     * @param recipe The recipe that was clicked.
+     */
     private void navigateToRecipeDetails(Recipe recipe) {
         Bundle bundle = new Bundle();
         bundle.putString("recipeId", recipe.getRecipeId());
@@ -71,7 +91,11 @@ public class FavoritesFragment extends Fragment {
         Navigation.findNavController(requireView()).navigate(R.id.action_navigation_favorites_to_recipeDetailFragment, bundle);
     }
 
-    // Remove recipe from User favorites
+    /**
+     * Remove recipe from User favorites
+     *
+     * @param recipe The recipe that was moved from the users favorite.
+     */
     private void removeFromFavorites(Recipe recipe) {
         String userId = auth.getCurrentUser().getUid();
         firestoreRepository.removeFavorite(userId, recipe.getRecipeId(), new FirestoreRepository.FirestoreCallback<Void>() {
@@ -89,7 +113,11 @@ public class FavoritesFragment extends Fragment {
         });
     }
 
-    // Fetch and display favorite recipes
+    /**
+     * Fetch and display favorite recipes.
+     *
+     * @param userId The users Id.
+     */
     private void loadUserFavorites(String userId) {
         firestoreRepository.getFavoriteRecipeIds(userId, new FirestoreRepository.FirestoreCallback<List<String>>() {
             @Override

@@ -16,6 +16,10 @@ import hbv601g.Recipe.databinding.FragmentNotificationsBinding
 import hbv601g.Recipe.entities.NotificationModel
 import hbv601g.Recipe.ui.notifications.NotificationAdapter  // Import the adapter
 
+/**
+ * A notification fragment for the view.
+ *
+ */
 class NotificationsFragment : Fragment() {
 
     private var _binding: FragmentNotificationsBinding? = null
@@ -42,7 +46,6 @@ class NotificationsFragment : Fragment() {
         notificationAdapter = NotificationAdapter(notificationList)
         recyclerView.adapter = notificationAdapter
 
-        // Observe LiveData
         notificationsViewModel.notifications.observe(viewLifecycleOwner) { notifications ->
             notificationList.clear()
             notificationList.addAll(notifications)

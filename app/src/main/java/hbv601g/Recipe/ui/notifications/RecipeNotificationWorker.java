@@ -16,12 +16,14 @@ import java.util.HashMap;
 import java.util.Map;
 import hbv601g.Recipe.R;
 
+/**
+ * A worker class for the recipe notification in the app.
+ *
+ */
 public class RecipeNotificationWorker extends Worker {
-
     public RecipeNotificationWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
-
     @NonNull
     @Override
     public Result doWork() {
@@ -35,7 +37,10 @@ public class RecipeNotificationWorker extends Worker {
         }
     }
 
-    // Displays a push notification for the scheduled recipe
+    /**
+     *  Displays a push notification for the scheduled recipe.
+     *
+     */
     private void showNotification(String recipeTitle) {
         Context context = getApplicationContext();
         String channelId = "recipe_notifications";
@@ -47,8 +52,6 @@ public class RecipeNotificationWorker extends Worker {
             channel.setDescription("Reminders for scheduled recipes");
             notificationManager.createNotificationChannel(channel);
         }
-
-        // Opens NotificationsFragment when the user taps the notification
         Intent intent = new Intent(context, NotificationsFragment.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
@@ -69,7 +72,11 @@ public class RecipeNotificationWorker extends Worker {
         saveNotificationToFirestore(recipeTitle);
     }
 
-    // Saves the notification data in Firestore under the user's notifications
+    /**
+     * Saves the notification data in Firestore under the user's notifications.
+     *
+     * @param recipeTitle The title of the recipe.
+     */
     private void saveNotificationToFirestore(String recipeTitle) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();

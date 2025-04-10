@@ -13,6 +13,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -62,6 +64,9 @@ public class EditRecipeFragment extends Fragment {
         }
 
         saveButton.setOnClickListener(v -> saveChanges());
+        Button deleteButton = view.findViewById(R.id.button_delete_recipe);
+        deleteButton.setOnClickListener(v -> confirmAndDeleteRecipe());
+
 
         return view;
     }
@@ -104,6 +109,48 @@ public class EditRecipeFragment extends Fragment {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Failed to update recipe", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
+    }
+
+    /**
+     * Shows a confirmation dialog asking the user
+     * if they are sure they want to delete the recipe.
+     * This action cannot be undone.
+     */
+    private void confirmAndDeleteRecipe() {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Delete Recipe")
+                .setMessage("Are you sure you want to delete this recipe? This action cannot be undone.")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    deleteRecipe();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    /**
+     * Deletes the recipe from the database.
+     * Displays a toast message depending on whether the deletion was successful.
+     */
+    private void deleteRecipe() {
+        if (recipeId == null) {
+            // Check if recipeId is missing before attempting deletion
+            Toast.makeText(getContext(), "Recipe ID is missing", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("recipes").document(recipeId)
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    // Show a success message and navigate back to the home screen
+                    Toast.makeText(getContext(), "Recipe deleted", Toast.LENGTH_SHORT).show();
+                    NavController navController = NavHostFragment.findNavController(EditRecipeFragment.this);
+                    navController.navigate(R.id.navigation_home); // Navigate to home
+                })
+                .addOnFailureListener(e -> {
+                    // Show an error message if deletion fails
+                    Toast.makeText(getContext(), "Failed to delete recipe", Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 });
     }
