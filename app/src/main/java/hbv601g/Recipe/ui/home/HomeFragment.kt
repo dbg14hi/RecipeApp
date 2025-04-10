@@ -134,13 +134,16 @@ class HomeFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
         }
 
-        // Setup sorting dropdown
         setupSortingDropdown()
 
-        // Fetch recipes in real-time
         fetchRecipesInRealTime()
 
         return root
+    }
+
+    override fun onResume() {
+        super.onResume()
+        fetchRecipesInRealTime()
     }
 
     override fun onDestroyView() {

@@ -189,25 +189,36 @@ public class RecipeDetailFragment extends Fragment {
                             String creatorId = documentSnapshot.getString("userId");
                             if (userId.equals(creatorId)) {
                                 editButton.setVisibility(View.VISIBLE);
+
+                                editButton.setOnClickListener(v -> {
+                                    Bundle editBundle = new Bundle();
+                                    editBundle.putString("recipeId", recipeId);
+                                    editBundle.putString("recipeTitle", title);
+                                    editBundle.putString("recipeDescription", description);
+                                    editBundle.putStringArrayList("recipeIngredients", ingredients);
+                                    editBundle.putInt("recipeCookingTime", cookingTime);
+                                    editBundle.putStringArrayList("recipeDietaryRestrictions",
+                                            documentSnapshot.contains("dietaryRestrictions")
+                                                    ? (ArrayList<String>) documentSnapshot.get("dietaryRestrictions")
+                                                    : new ArrayList<>());
+
+                                    editBundle.putStringArrayList("recipeMealCategories",
+                                            documentSnapshot.contains("mealCategories")
+                                                    ? (ArrayList<String>) documentSnapshot.get("mealCategories")
+                                                    : new ArrayList<>());
+
+                                    NavHostFragment.findNavController(RecipeDetailFragment.this)
+                                            .navigate(R.id.action_recipeDetailFragment_to_editRecipeFragment, editBundle);
+                                });
+
                             } else {
                                 editButton.setVisibility(View.GONE);
                             }
                         }
                     });
 
+
             checkIfFavorite();
-
-            editButton.setOnClickListener(v -> {
-                Bundle editBundle = new Bundle();
-                editBundle.putString("recipeId", recipeId);
-                editBundle.putString("recipeTitle", title);
-                editBundle.putString("recipeDescription", description);
-                editBundle.putStringArrayList("recipeIngredients", ingredients);
-                editBundle.putInt("recipeCookingTime", cookingTime);
-
-                NavHostFragment.findNavController(RecipeDetailFragment.this)
-                        .navigate(R.id.action_recipeDetailFragment_to_editRecipeFragment, editBundle);
-            });
 
             favoriteButton.setOnClickListener(v -> toggleFavorite(userId, recipeId));
             reviewButton.setOnClickListener(v -> openReviewFragment());
